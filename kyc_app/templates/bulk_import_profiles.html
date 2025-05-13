@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Import KYC Profiles{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="flex items-center text-sm mb-6">
+        <a href="{% url 'kyc_app:kyc_workflow_dashboard' %}" class="text-blue-600 hover:text-blue-800">Dashboard</a>
+        <span class="mx-2 text-gray-500">/</span>
+        <span class="text-gray-700">Bulk Import Profiles</span>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-4">Bulk Import KYC Profiles</h1>
+    <p class="text-gray-600 mb-8">Upload Excel files to import multiple profiles at once. Each row in the Excel file will be processed as a separate profile.</p>
+
+    <!-- Import Results Display Area -->
+    <div id="importResults" class="hidden mb-8">
+        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Import Results</h2>
+            <div id="resultsContent">
+                <!-- Results will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Upload Excel File</h2>
+        
+        <form id="bulkImportForm" method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Import Type Selection -->
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Import Type</label>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <input type="radio" id="individual" name="import_type" value="individual" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="individual" class="ml-2 block text-gray-700">Individual Profiles</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="business" name="import_type" value="business" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="business" class="ml-2 block text-gray-700">Business Profiles</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Upload -->
+            <div class="mb-4">
+                <label for="excel_file" class="block text-gray-700 text-sm font-bold mb-2">Excel File (.xlsx)</label>
+                <input type="file" id="excel_file" name="excel_file" accept=".xlsx" required
+                       class="block w-full text-sm text-gray-500
+                              file:mr-4 file:py-2 file:px-4
+                              file:rounded-md file:border-0
+                              file:text-sm file:font-semibold
+                              file:bg-blue-50 file:text-blue-700
+                              hover:file:bg-blue-100">
+                <p class="mt-1 text-xs text-gray-500">Only Excel files (.xlsx) are accepted</p>
+            </div>
+            
+            <!-- Upload Button -->
+            <div class="flex items-center justify-between">
+                <button type="submit" id="uploadButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Upload and Import
+                </button>
+                <a href="{% url 'kyc_app:kyc_workflow_dashboard' %}" class="text-blue-600 hover:text-blue-800">
+                    Cancel and return to dashboard
+                </a>
+            </div>
+        </form>
+        
+        <!-- Upload Progress -->
+        <div id="uploadProgress" class="hidden mt-6">
+            <p class="text-gray-700 mb-2">Processing your file... This may take a few moments.</p>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Instructions and Templates -->
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Instructions</h2>
+        
+        <!-- Warning Notice -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Important:</strong> Before uploading, make sure your data is accurate and complete. All imported profiles will be marked as "SUBMITTED" and enter the KYC review queue.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Individual Profile Instructions -->
+        <div id="individualInstructions" class="mb-6">
+            <h3 class="text-lg font-medium mb-2">Individual Profile Format</h3>
+            <p class="text-gray-600 mb-2">Your Excel file should include the following columns for individual profiles:</p>
+            <div class="bg-gray-50 p-4 rounded-md">
+                <p class="font-medium">Required Fields:</p>
+                <ul class="list-disc pl-5 mb-3 text-sm">
+                    <li><span class="font-medium">full_name</span> - Full name of the individual</li>
+                </ul>
+                <p class="font-medium">Recommended Additional Fields:</p>
+                <ul class="list-disc pl-5 text-sm">
+                    <li><span class="font-medium">customer_id</span> - Unique identifier (auto-generated if not provided)</li>
+                    <li><span class="font-medium">date_of_birth</span> - Date of birth (YYYY-MM-DD format)</li>
+                    <li><span class="font-medium">nationality</span> - Country of nationality</li>
+                    <li><span class="font-medium">id_document_type</span> - Type of ID document (Passport, National ID, etc.)</li>
+                    <li><span class="font-medium">id_document_number</span> - Document number</li>
+                    <li><span class="font-medium">id_issued_country</span> - Country that issued the ID</li>
+                    <li><span class="font-medium">email</span> - Email address</li>
+                    <li><span class="font-medium">phone_number</span> - Phone number</li>
+                    <li><span class="font-medium">address</span> - Street address</li>
+                    <li><span class="font-medium">city</span> - City</li>
+                    <li><span class="font-medium">country</span> - Country of residence</li>
+                    <li><span class="font-medium">account_number</span> - Bank account number</li>
+                    <li><span class="font-medium">gender</span> - Gender</li>
+                    <li><span class="font-medium">occupation</span> - Occupation</li>
+                    <li><span class="font-medium">employer_name</span> - Employer name</li>
+                    <li><span class="font-medium">source_of_funds</span> - Source of funds</li>
+                </ul>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'kyc_app:download_import_template' %}?type=individual" class="text-blue-600 hover:text-blue-800 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                    </svg>
+                    Download Individual Profile Template
+                </a>
+            </div>
+        </div>
+        
+        <!-- Business Profile Instructions -->
+        <div id="businessInstructions" class="mb-6 hidden">
+            <h3 class="text-lg font-medium mb-2">Business Profile Format</h3>
+            <p class="text-gray-600 mb-2">Your Excel file should include the following columns for business profiles:</p>
+            <div class="bg-gray-50 p-4 rounded-md">
+                <p class="font-medium">Required Fields:</p>
+                <ul class="list-disc pl-5 mb-3 text-sm">
+                    <li><span class="font-medium">business_name</span> - Name of the business entity</li>
+                </ul>
+                <p class="font-medium">Recommended Additional Fields:</p>
+                <ul class="list-disc pl-5 text-sm">
+                    <li><span class="font-medium">business_id</span> - Unique identifier (auto-generated if not provided)</li>
+                    <li><span class="font-medium">registration_number</span> - Business registration number</li>
+                    <li><span class="font-medium">registration_date</span> - Date of registration (YYYY-MM-DD format)</li>
+                    <li><span class="font-medium">business_type</span> - Type of business (Corporation, LLC, etc.)</li>
+                    <li><span class="font-medium">industry_sector</span> - Industry sector or category</li>
+                    <li><span class="font-medium">registration_country</span> - Country of registration</li>
+                    <li><span class="font-medium">business_address</span> - Business address</li>
+                    <li><span class="font-medium">business_email</span> - Business email address</li>
+                    <li><span class="font-medium">business_phone</span> - Business phone number</li>
+                    <li><span class="font-medium">annual_revenue</span> - Annual revenue range</li>
+                    <li><span class="font-medium">bank_name</span> - Primary bank name</li>
+                    <li><span class="font-medium">account_number</span> - Bank account number</li>
+                    <li><span class="font-medium">business_purpose</span> - Purpose of the business</li>
+                    <li><span class="font-medium">source_of_funds</span> - Source of business funds</li>
+                    <li><span class="font-medium">transaction_volume</span> - Expected transaction volume</li>
+                    <li><span class="font-medium">swift_code</span> - SWIFT/BIC code</li>
+                </ul>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'kyc_app:download_import_template' %}?type=business" class="text-blue-600 hover:text-blue-800 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                    </svg>
+                    Download Business Profile Template
+                </a>
+            </div>
+        </div>
+        
+        <!-- General Tips -->
+        <div>
+            <h3 class="text-lg font-medium mb-2">Tips for Successful Import</h3>
+            <ul class="list-disc pl-5 text-gray-600">
+                <li>Use the provided templates for the best results</li>
+                <li>Make sure all dates are in YYYY-MM-DD format</li>
+                <li>Avoid special characters in text fields</li>
+                <li>Keep file size under 10MB for optimal performance</li>
+                <li>All imported profiles will immediately enter the KYC workflow for review</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle instructions based on selected import type
+    document.addEventListener('DOMContentLoaded', function() {
+        const individualRadio = document.getElementById('individual');
+        const businessRadio = document.getElementById('business');
+        const individualInstructions = document.getElementById('individualInstructions');
+        const businessInstructions = document.getElementById('businessInstructions');
+        
+        function toggleInstructions() {
+            if (individualRadio.checked) {
+                individualInstructions.classList.remove('hidden');
+                businessInstructions.classList.add('hidden');
+            } else {
+                individualInstructions.classList.add('hidden');
+                businessInstructions.classList.remove('hidden');
+            }
+        }
+        
+        individualRadio.addEventListener('change', toggleInstructions);
+        businessRadio.addEventListener('change', toggleInstructions);
+        
+        // Initial toggle
+        toggleInstructions();
+        
+        // Handle form submission via AJAX
+        const form = document.getElementById('bulkImportForm');
+        const uploadButton = document.getElementById('uploadButton');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const importResults = document.getElementById('importResults');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            const fileInput = document.getElementById('excel_file');
+            if (!fileInput.files.length) {
+                alert('Please select an Excel file to upload.');
+                return;
+            }
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            
+            // Show progress
+            uploadButton.disabled = true;
+            uploadButton.classList.add('opacity-50', 'cursor-not-allowed');
+            uploadProgress.classList.remove('hidden');
+            
+            // Simulate progress (since we can't accurately track server processing)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) {
+                    progress = 90; // Max out at 90% until we get the actual response
+                    clearInterval(progressInterval);
+                }
+                progressBar.style.width = progress + '%';
+            }, 500);
+            
+            // Make AJAX request
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Stop progress animation
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                // Show results
+                displayResults(data);
+                
+                // Re-enable form after a short delay
+                setTimeout(() => {
+                    uploadProgress.classList.add('hidden');
+                    uploadButton.disabled = false;
+                    uploadButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    form.reset();
+                }, 1000);
+            })
+            .catch(error => {
+                // Handle errors
+                clearInterval(progressInterval);
+                uploadProgress.classList.add('hidden');
+                uploadButton.disabled = false;
+                uploadButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                displayResults({
+                    completed: true,
+                    total: 0,
+                    success: 0,
+                    failed: 1,
+                    errors: [`Failed to process request: ${error.message}`]
+                });
+                
+                console.error('Error:', error);
+            });
+        });
+        
+        function displayResults(data) {
+            if (!data.completed) return;
+            
+            // Show results container
+            importResults.classList.remove('hidden');
+            
+            // Generate results HTML
+            let html = '';
+            
+            // Summary stats
+            html += `<div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-gray-50 p-4 rounded-md text-center">
+                    <p class="text-gray-500 text-sm">Total</p>
+                    <p class="text-2xl font-bold">${data.total}</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-md text-center">
+                    <p class="text-green-500 text-sm">Successful</p>
+                    <p class="text-2xl font-bold text-green-600">${data.success}</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-md text-center">
+                    <p class="text-red-500 text-sm">Failed</p>
+                    <p class="text-2xl font-bold text-red-600">${data.failed}</p>
+                </div>
+            </div>`;
+            
+            // Success message if any profiles were imported
+            if (data.success > 0) {
+                const importType = data.import_type || 'profile';
+                html += `<div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-green-700">
+                                Successfully imported ${data.success} ${importType} profiles.
+                                These profiles have been moved to the "Submitted" state in the KYC workflow.
+                            </p>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // Show errors if any
+            if (data.failed > 0 && data.errors && data.errors.length > 0) {
+                html += `<div class="mt-4">
+                    <h3 class="text-lg font-medium mb-2 text-red-600">Errors</h3>
+                    <div class="bg-red-50 p-4 rounded-md">
+                        <ul class="list-disc pl-5 text-sm">`;
+                
+                data.errors.forEach(error => {
+                    html += `<li class="text-red-700">${error}</li>`;
+                });
+                
+                html += `</ul>
+                    </div>
+                </div>`;
+                
+                if (data.errors.length < data.failed) {
+                    html += `<p class="text-sm text-gray-500 mt-2">Showing ${data.errors.length} of ${data.failed} errors.</p>`;
+                }
+            }
+            
+            // Next steps
+            html += `<div class="mt-6 flex justify-end">
+                <a href="{% url 'kyc_app:kyc_workflow_dashboard' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Go to Workflow Dashboard
+                </a>
+            </div>`;
+            
+            // Update results content
+            resultsContent.innerHTML = html;
+            
+            // Scroll to results
+            importResults.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Screening Report</title>
+    <style>
+        @page {
+            margin: 25mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+
+        h1, h2 {
+            font-weight: normal;
+            margin: 0.5em 0;
+        }
+
+        h1 {
+            font-size: 16px;
+        }
+
+        h2 {
+            font-size: 14px;
+            margin-top: 1.5em;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-header .title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .report-header .logo img {
+            height: 24px;
+        }
+
+        .meta-info {
+            font-size: 12px;
+            margin-bottom: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+            font-size: 12px;
+        }
+
+        thead th {
+            background: #f5f5f5;
+            border-bottom: 1px solid #ccc;
+            font-weight: normal;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tbody td {
+            border-bottom: 1px solid #eee;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        /* Section headings */
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 1em 0 0.5em;
+        }
+
+        .about, .legal {
+            margin-top: 1em;
+            line-height: 1.4;
+        }
+
+        .legal p, .about p {
+            margin: 0.5em 0;
+        }
+
+        /* Optional styling for columns */
+        .org-col {
+            width: 15%;
+        }
+        .source-col {
+            width: 20%;
+        }
+        .det-col {
+            width: 65%;
+        }
+        .match-col {
+            width: 10%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section (Title + Optional Logo) -->
+    <div class="report-header">
+        <div class="title">Screening Report</div>
+        <div class="logo">
+            <!-- If you have a Capesso logo or any brand logo, put it here:
+            <img src="https://example.com/Capesso_logo.png" alt="Capesso Logo" /> -->
+            <!-- or just text: -->
+            <strong>Capesso™</strong>
+        </div>
+    </div>
+
+    <!-- Meta Information -->
+    <div class="meta-info">
+        <p><strong>Search Query:</strong> {{ query }}</p>
+        <p><strong>Source Type:</strong> {{ source_type }}</p>
+        <p><strong>Screening Time:</strong> {{ screening_time }}</p>
+        <p><strong>Total Hits:</strong> {{ results.total_hits }}</p>
+    </div>
+
+    <h2>International</h2>
+    <table>
+        <thead>
+            <tr>
+
+                
+                <th class="org-col">Name</th>
+                <th class="source-col">Source ID</th>
+                <th class="source-col">Source Type</th>
+                <th class="det-col">Details</th>
+                <th class="desc-col">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in results.found_records  %}
+            <tr>
+                <td>{{ record.name|default:'Unknown' }}</td>
+                <td>{{ record.source_id|default:'-' }}</td>
+                <td>{{ record.source_type|default:'-' }}</td>
+                <td>{{ record.sanction_details|default:'-' }}</td>
+
+                <td>
+                    {{ record.other_information|default:'-' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Additional sections (about + legal notice) -->
+    <h2>About Capesso AML</h2>
+    <div class="about">
+        <p>
+            Staying compliant with financial regulations is becoming more and more challenging. 
+            Sanction lists evolve every day with individuals, entities, and objects being removed and 
+            added constantly. On top of that, sanctioning bodies are increasing, as we see more and 
+            more countries issuing their own sanction lists and having definitions of PEPs. Regulations 
+            designed for protecting businesses from high-risk customers like anti-money laundering (AML), 
+            know your customer (KYC) and counter-terrorist financing (CTF) are our area of expertise. 
+            We help businesses to stay compliant with simple products that reduce the complexity of 
+            the regulatory environment.
+        </p>
+        <p>
+            Capesso AML three core values:
+            <br>- Relentless compliance: We support you with AML, KYC and CTF obligations.
+            <br>- Full transparency: We are fully transparent about our sources.
+            <br>- Absolute privacy: Your privacy is our highest priority.
+        </p>
+        
+    </div>
+
+    <h2>Legal notice</h2>
+    <div class="legal">
+        <p>
+            Please be aware, that this report is designed to raise awareness for possible risks and 
+            to situations where further investigations may be appropriate. This report does not suggest 
+            that persons and / or entities included in this report necessarily constitute an actual risk in 
+            your context (market, customers, products and services). This report represents only a high-level 
+            screening summary. It must not be provided to any internal and / or external individual and / or 
+            entity by its own, but must always be referred to the underlying detailed search result and its 
+            context by the initiator of this report.
+        </p>
+        <p>
+            While  Capesso undertakes every effort to provide correct and consistent consolidated 
+            sanctions, PEPs and criminals list, based on the various sources made available through official 
+            governmental (department) bodies, Capesso accepts no liability for possible omission of data, 
+            possible mistakes in the data during the consolidation of the data, false positive hits, false negative 
+            results or for malfunctions of the reporting system.
+        </p>
+    </div>
+</body>
+</html>

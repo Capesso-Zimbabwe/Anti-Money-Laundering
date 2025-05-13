@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+  <div class="flex justify-center items-center min-h-screen bg-gray-100 p-6 text-sm">
+    <div class="w-full max-w-5xl bg-white shadow-md rounded-lg p-6">
+      <h2 class="text-lg font-bold text-gray-800 text-center mb-6">
+        Register Business KYC Profile
+      </h2>
+      
+      <!-- Optional: Display messages -->
+      <div id="messages" class="mb-4 hidden">
+        <div class="p-4 mb-2 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">
+          Form submitted successfully!
+        </div>
+      </div>
+      
+      <form id="businessKycForm" class="space-y-6">
+        <!-- Business Information -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Information</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Business ID -->
+            <div>
+              <label for="business_id" class="block text-xs text-gray-700 font-semibold">
+                Business ID
+              </label>
+              <input type="text" id="business_id" name="business_id" class="rounded-md border border-gray-300 p-1 w-32 text-xs">
+            </div>
+            <!-- Business Name -->
+            <div>
+              <label for="business_name" class="block text-xs text-gray-700 font-semibold">
+                Business Name
+              </label>
+              <input type="text" id="business_name" name="business_name" class="rounded-md border border-gray-300 p-1 text-xs w-full" required>
+            </div>
+            <!-- Registration Date -->
+            <div>
+              <label for="registration_date" class="block text-xs text-gray-700 font-semibold">
+                Registration Date
+              </label>
+              <input type="date" id="registration_date" name="registration_date" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+            <!-- Business Type -->
+            <div>
+              <label for="business_type" class="block text-xs text-gray-700 font-semibold">
+                Business Type
+              </label>
+              <select id="business_type" name="business_type" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+                <option value="">Select Business Type</option>
+                <option value="sole_proprietorship">Sole Proprietorship</option>
+                <option value="partnership">Partnership</option>
+                <option value="llc">Limited Liability Company (LLC)</option>
+                <option value="corporation">Corporation</option>
+                <option value="nonprofit">Non-Profit Organization</option>
+                <option value="trust">Trust</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <!-- Industry Sector -->
+            <div>
+              <label for="industry_sector" class="block text-xs text-gray-700 font-semibold">
+                Industry Sector
+              </label>
+              <select id="industry_sector" name="industry_sector" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+                <option value="">Select Industry Sector</option>
+                <option value="agriculture">Agriculture</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="retail">Retail</option>
+                <option value="technology">Technology</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="finance">Finance & Insurance</option>
+                <option value="construction">Construction</option>
+                <option value="transportation">Transportation</option>
+                <option value="hospitality">Hospitality</option>
+                <option value="education">Education</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Registration Documents -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Registration Documents</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Registration Number -->
+            <div>
+              <label for="registration_number" class="block text-xs text-gray-700 font-semibold">
+                Registration Number
+              </label>
+              <input type="text" id="registration_number" name="registration_number" class="rounded-md border border-gray-300 p-1 text-xs" required>
+            </div>
+            <!-- Tax ID Number -->
+            <div>
+              <label for="tax_id_number" class="block text-xs text-gray-700 font-semibold">
+                Tax ID Number
+              </label>
+              <input type="text" id="tax_id_number" name="tax_id_number" class="rounded-md border border-gray-300 p-1 text-xs" required>
+            </div>
+            <!-- Country of Registration -->
+            <div>
+              <label for="registration_country" class="block text-xs text-gray-700 font-semibold">
+                Country of Registration
+              </label>
+              <select id="registration_country" name="registration_country" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+                <option value="">Select Country</option>
+              </select>
+            </div>
+            <!-- License Expiry Date -->
+            <div>
+              <label for="license_expiry_date" class="block text-xs text-gray-700 font-semibold">
+                License Expiry Date
+              </label>
+              <input type="date" id="license_expiry_date" name="license_expiry_date" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+            <!-- Upload Business Registration Document -->
+            <div>
+              <label for="registration_document" class="block text-xs text-gray-700 font-semibold">
+                Upload Registration Document
+              </label>
+              <input type="file" id="registration_document" name="registration_document" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+            <!-- Upload Tax Registration Document -->
+            <div>
+              <label for="tax_document" class="block text-xs text-gray-700 font-semibold">
+                Upload Tax Registration
+              </label>
+              <input type="file" id="tax_document" name="tax_document" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Contact Information</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Business Email -->
+            <div>
+              <label for="business_email" class="block text-xs text-gray-700 font-semibold">
+                Business Email
+              </label>
+              <input type="email" id="business_email" name="business_email" class="rounded-md border border-gray-300 p-1 text-xs" required>
+            </div>
+            <!-- Business Phone Number -->
+            <div>
+              <label for="business_phone" class="block text-xs text-gray-700 font-semibold">
+                Business Phone Number
+              </label>
+              <input type="tel" id="business_phone" name="business_phone" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-3">
+            <!-- Business Address -->
+            <div>
+              <label for="business_address" class="block text-xs text-gray-700 font-semibold">
+                Business Address
+              </label>
+              <input type="text" id="business_address" name="business_address" class="rounded-md border border-gray-300 p-1 text-xs w-full" required>
+            </div>
+            <!-- City -->
+            <div>
+              <label for="business_city" class="block text-xs text-gray-700 font-semibold">City</label>
+              <select id="business_city" name="business_city" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+                <option value="">Select City</option>
+                <option value="New York">New York</option>
+                <option value="London">London</option>
+                <option value="Toronto">Toronto</option>
+                <option value="Mexico City">Mexico City</option>
+                <option value="Beijing">Beijing</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Berlin">Berlin</option>
+                <option value="Paris">Paris</option>
+                <option value="Sydney">Sydney</option>
+              </select>
+            </div>
+            <!-- Country -->
+            <div>
+              <label for="business_country" class="block text-xs text-gray-700 font-semibold">Country</label>
+              <select id="business_country" name="business_country" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+                <option value="">Select Country</option>
+              </select>
+            </div>
+            <!-- Website -->
+            <div>
+              <label for="business_website" class="block text-xs text-gray-700 font-semibold">
+                Business Website
+              </label>
+              <input type="url" id="business_website" name="business_website" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Ownership & Beneficial Owners -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Ownership Structure & Beneficial Owners</h3>
+          
+          <!-- Ownership Structure -->
+          <div class="mb-4">
+            <label for="ownership_structure" class="block text-xs text-gray-700 font-semibold mb-2">
+              Ownership Structure
+            </label>
+            <select id="ownership_structure" name="ownership_structure" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+              <option value="">Select Ownership Structure</option>
+              <option value="single_owner">Single Owner</option>
+              <option value="multiple_partners">Multiple Partners</option>
+              <option value="public_company">Public Company</option>
+              <option value="private_company">Private Company</option>
+              <option value="government_owned">Government Owned</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          
+          <!-- Beneficial Owner Section -->
+          <div id="beneficial_owners_section">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="text-md font-semibold text-gray-700">Beneficial Owner #1</h4>
+              <button type="button" id="add_owner" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">+ Add Owner</button>
+            </div>
+            
+            <div class="beneficial-owner border border-gray-200 p-3 rounded mb-3">
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Owner Full Name -->
+                <div>
+                  <label for="owner_name_1" class="block text-xs text-gray-700 font-semibold">
+                    Full Name
+                  </label>
+                  <input type="text" id="owner_name_1" name="owner_name_1" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+                </div>
+                <!-- Owner Nationality -->
+                <div>
+                  <label for="owner_nationality_1" class="block text-xs text-gray-700 font-semibold">
+                    Nationality
+                  </label>
+                  <select id="owner_nationality_1" name="owner_nationality_1" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+                    <option value="">Select Nationality</option>
+                  </select>
+                </div>
+                <!-- Owner ID Type -->
+                <div>
+                  <label for="owner_id_type_1" class="block text-xs text-gray-700 font-semibold">
+                    ID Document Type
+                  </label>
+                  <select id="owner_id_type_1" name="owner_id_type_1" class="rounded-md border border-gray-300 p-1 text-xs">
+                    <option value="">Select ID Type</option>
+                    <option value="passport">Passport</option>
+                    <option value="national_id">National ID</option>
+                    <option value="drivers_license">Driver's License</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <!-- Owner ID Number -->
+                <div>
+                  <label for="owner_id_number_1" class="block text-xs text-gray-700 font-semibold">
+                    ID Document Number
+                  </label>
+                  <input type="text" id="owner_id_number_1" name="owner_id_number_1" class="rounded-md border border-gray-300 p-1 text-xs">
+                </div>
+                <!-- Ownership Percentage -->
+                <div>
+                  <label for="ownership_percentage_1" class="block text-xs text-gray-700 font-semibold">
+                    Ownership Percentage
+                  </label>
+                  <input type="number" id="ownership_percentage_1" name="ownership_percentage_1" min="0" max="100" class="rounded-md border border-gray-300 p-1 w-20 text-xs">
+                </div>
+                <!-- PEP Status -->
+                <div>
+                  <label for="pep_status_1" class="block text-xs text-gray-700 font-semibold">
+                    PEP Status
+                  </label>
+                  <select id="pep_status_1" name="pep_status_1" class="rounded-md border border-gray-300 p-1 text-xs">
+                    <option value="no">Not a PEP</option>
+                    <option value="yes">Politically Exposed Person</option>
+                    <option value="relative">Relative of a PEP</option>
+                    <option value="associate">Close Associate of a PEP</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Business Financial Information -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Financial Information</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Annual Revenue -->
+            <div>
+              <label for="annual_revenue" class="block text-xs text-gray-700 font-semibold">
+                Annual Revenue
+              </label>
+              <select id="annual_revenue" name="annual_revenue" class="rounded-md border border-gray-300 p-1 text-xs">
+                <option value="">Select Annual Revenue</option>
+                <option value="less_than_100k">Less than $100,000</option>
+                <option value="100k_500k">$100,000 - $500,000</option>
+                <option value="500k_1m">$500,000 - $1,000,000</option>
+                <option value="1m_5m">$1,000,000 - $5,000,000</option>
+                <option value="5m_10m">$5,000,000 - $10,000,000</option>
+                <option value="more_than_10m">More than $10,000,000</option>
+              </select>
+            </div>
+            <!-- Source of Funds -->
+            <div>
+              <label for="source_of_funds" class="block text-xs text-gray-700 font-semibold">
+                Primary Source of Funds
+              </label>
+              <select id="source_of_funds" name="source_of_funds" class="rounded-md border border-gray-300 p-1 text-xs">
+                <option value="">Select Source of Funds</option>
+                <option value="business_revenue">Business Revenue</option>
+                <option value="investments">Investments</option>
+                <option value="loans">Loans/Credit</option>
+                <option value="personal_capital">Personal Capital</option>
+                <option value="grants">Grants/Subsidies</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-3">
+            <label for="business_purpose" class="block text-xs text-gray-700 font-semibold">
+              Business Activities & Purpose
+            </label>
+            <textarea id="business_purpose" name="business_purpose" rows="3" class="w-full rounded-md border border-gray-300 p-1 text-xs"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-3">
+            <!-- Expected Transaction Volume -->
+            <div>
+              <label for="transaction_volume" class="block text-xs text-gray-700 font-semibold">
+                Expected Monthly Transaction Volume
+              </label>
+              <select id="transaction_volume" name="transaction_volume" class="rounded-md border border-gray-300 p-1 text-xs">
+                <option value="">Select Transaction Volume</option>
+                <option value="less_than_10k">Less than $10,000</option>
+                <option value="10k_50k">$10,000 - $50,000</option>
+                <option value="50k_100k">$50,000 - $100,000</option>
+                <option value="100k_500k">$100,000 - $500,000</option>
+                <option value="more_than_500k">More than $500,000</option>
+              </select>
+            </div>
+            <!-- Countries of Operation -->
+            <div>
+              <label for="countries_of_operation" class="block text-xs text-gray-700 font-semibold">
+                Primary Countries of Operation
+              </label>
+              <select id="countries_of_operation" name="countries_of_operation" multiple class="w-full border border-gray-300 p-2 rounded-md text-xs h-20">
+                <!-- Will be populated by JavaScript -->
+              </select>
+              <span class="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Banking Information -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Banking Information</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Bank Name -->
+            <div>
+              <label for="bank_name" class="block text-xs text-gray-700 font-semibold">
+                Bank Name
+              </label>
+              <input type="text" id="bank_name" name="bank_name" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+            <!-- Account Number -->
+            <div>
+              <label for="account_number" class="block text-xs text-gray-700 font-semibold">
+                Account Number
+              </label>
+              <input type="text" id="account_number" name="account_number" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+            <!-- Account Type -->
+            <div>
+              <label for="account_type" class="block text-xs text-gray-700 font-semibold">
+                Account Type
+              </label>
+              <select id="account_type" name="account_type" class="rounded-md border border-gray-300 p-1 text-xs">
+                <option value="">Select Account Type</option>
+                <option value="checking">Business Checking</option>
+                <option value="savings">Business Savings</option>
+                <option value="investment">Investment Account</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <!-- Swift/BIC Code -->
+            <div>
+              <label for="swift_code" class="block text-xs text-gray-700 font-semibold">
+                Swift/BIC Code
+              </label>
+              <input type="text" id="swift_code" name="swift_code" class="rounded-md border border-gray-300 p-1 text-xs">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Risk Assessment and Compliance -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Risk Assessment & Compliance</h3>
+          <div class="mb-3">
+            <label class="block text-xs text-gray-700 font-semibold mb-2">
+              Does the business operate in high-risk jurisdictions?
+            </label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="high_risk_jurisdiction" value="no" class="form-radio">
+                <span class="ml-2 text-xs">No</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="high_risk_jurisdiction" value="yes" class="form-radio">
+                <span class="ml-2 text-xs">Yes</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="block text-xs text-gray-700 font-semibold mb-2">
+              Has the business or any of its directors/owners been subject to regulatory sanctions?
+            </label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="sanctions_history" value="no" class="form-radio">
+                <span class="ml-2 text-xs">No</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="sanctions_history" value="yes" class="form-radio">
+                <span class="ml-2 text-xs">Yes</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="aml_policy" class="block text-xs text-gray-700 font-semibold mb-2">
+              Does the business have an AML policy?
+            </label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="aml_policy" value="no" class="form-radio">
+                <span class="ml-2 text-xs">No</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="aml_policy" value="yes" class="form-radio">
+                <span class="ml-2 text-xs">Yes</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="compliance_officer" class="block text-xs text-gray-700 font-semibold">
+              Compliance Officer Name (if applicable)
+            </label>
+            <input type="text" id="compliance_officer" name="compliance_officer" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+          </div>
+        </div>
+        
+        <!-- Declaration & Submission -->
+        <div class="bg-gray-100 p-4 rounded-md">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3">Declaration</h3>
+          <div class="mb-3">
+            <label class="inline-flex items-center text-xs">
+              <input type="checkbox" id="declaration_checkbox" name="declaration_checkbox" class="form-checkbox" required>
+              <span class="ml-2 text-xs">I declare that the information provided in this form is true and accurate to the best of my knowledge. I understand that providing false information may result in legal consequences.</span>
+            </label>
+          </div>
+          <div class="mb-3">
+            <label class="inline-flex items-center text-xs">
+              <input type="checkbox" id="consent_checkbox" name="consent_checkbox" class="form-checkbox" required>
+              <span class="ml-2 text-xs">I consent to the processing of the provided information for the purpose of anti-money laundering compliance and business verification.</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="flex justify-end mt-4">
+          <button type="submit" id="submitForm" class="px-6 py-2 bg-[#f68430] text-white font-semibold rounded-md hover:bg-orange-300 transition">
+            Register Business
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Script to fetch dynamic country data from the REST Countries API -->
+  <script>
+    async function fetchCountriesAndNationalities() {
+      try {
+        const response = await fetch("https://restcountries.com/v3.1/all");
+        const countries = await response.json();
+        countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
+
+        // Get dropdown elements
+        const registrationCountrySelect = document.getElementById("registration_country");
+        const businessCountrySelect = document.getElementById("business_country");
+        const ownerNationalitySelect = document.getElementById("owner_nationality_1");
+        const countriesOfOperationSelect = document.getElementById("countries_of_operation");
+
+        // Clear default options
+        registrationCountrySelect.innerHTML = '<option value="">Select Country</option>';
+        businessCountrySelect.innerHTML = '<option value="">Select Country</option>';
+        ownerNationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+        countriesOfOperationSelect.innerHTML = '';
+
+        countries.forEach(country => {
+          const countryName = country.name.common;
+
+          // Populate Registration Country Dropdown
+          const optionRegistration = document.createElement("option");
+          optionRegistration.value = countryName;
+          optionRegistration.textContent = countryName;
+          registrationCountrySelect.appendChild(optionRegistration);
+
+          // Populate Business Country Dropdown
+          const optionBusiness = document.createElement("option");
+          optionBusiness.value = countryName;
+          optionBusiness.textContent = countryName;
+          businessCountrySelect.appendChild(optionBusiness);
+
+          // Populate Owner Nationality Dropdown
+          let demonym = country.demonyms && country.demonyms.eng ? country.demonyms.eng.m : countryName;
+          const optionNationality = document.createElement("option");
+          optionNationality.value = demonym;
+          optionNationality.textContent = demonym;
+          ownerNationalitySelect.appendChild(optionNationality);
+
+          // Populate Countries of Operation Dropdown
+          const optionOperation = document.createElement("option");
+          optionOperation.value = countryName;
+          optionOperation.textContent = countryName;
+          countriesOfOperationSelect.appendChild(optionOperation);
+        });
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    }
+
+    // Add Beneficial Owner functionality
+    let ownerCount = 1;
+    
+    function addBeneficialOwner() {
+      ownerCount++;
+      
+      const newOwnerSection = document.createElement("div");
+      newOwnerSection.className = "beneficial-owner border border-gray-200 p-3 rounded mb-3";
+      newOwnerSection.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+          <h4 class="text-md font-semibold text-gray-700">Beneficial Owner #${ownerCount}</h4>
+          <button type="button" class="remove_owner text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Remove</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Owner Full Name -->
+          <div>
+            <label for="owner_name_${ownerCount}" class="block text-xs text-gray-700 font-semibold">
+              Full Name
+            </label>
+            <input type="text" id="owner_name_${ownerCount}" name="owner_name_${ownerCount}" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+          </div>
+          <!-- Owner Nationality -->
+          <div>
+            <label for="owner_nationality_${ownerCount}" class="block text-xs text-gray-700 font-semibold">
+              Nationality
+            </label>
+            <select id="owner_nationality_${ownerCount}" name="owner_nationality_${ownerCount}" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+              <option value="">Select Nationality</option>
+            </select>
+          </div>
+          <!-- Owner ID Type -->
+          <div>
+            <label for="owner_id_type_${ownerCount}" class="block text-xs text-gray-700 font-semibold">
+              ID Document Type
+            </label>
+            <select id="owner_id_type_${ownerCount}" name="owner_id_type_${ownerCount}" class="rounded-md border border-gray-300 p-1 text-xs">
+              <option value="">Select ID Type</option>
+              <option value="passport">Passport</option>
+              <option value="national_id">National ID</option>
+              <option value="drivers_license">Driver's License</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <!-- Owner ID Number -->
+          <div>
+            <label for="owner_id_number_${ownerCount}" class="block text-xs text-gray-700 font-semibold">
+              ID Document Number
+            </label>
+            <input type="text" id="owner_id_number_${ownerCount}" name="owner_id_number_${ownerCount}" class="rounded-md border border-gray-300 p-1 text-xs">
+          </div>
+          <!-- Ownership Percentage -->
+          <div>
+            <label for="ownership_percentage_${ownerCount}" class="block text-xs text-gray-700 font-semibold">
+              Ownership Percentage
+            </label>
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AML Report (PDF)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>AML Suspicious Transaction Report (Last 30 Days)</h1>
+    <p><strong>Total Suspicious Transactions:</strong> {{ total_suspicious }}</p>
+    <p><strong>Total Amount:</strong> {{ total_amount }}</p>
+
+    <h2>Breakdown by Risk Level</h2>
+    <table>
+      <tr>
+        <th>Risk Level</th>
+        <th>Count</th>
+        <th>Total Amount</th>
+      </tr>
+      {% for item in risk_breakdown %}
+      <tr>
+        <td>{{ item.risk_level }}</td>
+        <td>{{ item.count }}</td>
+        <td>{{ item.total }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Suspicious Transactions</h2>
+    <table>
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Risk Level</th>
+            <th>Flagged Reason</th>
+            <th>Customer Name</th>
+            <th>Account Number</th>
+            <th>Sender Account</th>
+            <th>Receiver Account</th>
+            <th>Amount</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for stxn in suspicious_qs %}
+          <tr>
+            <td>{{ stxn.transaction.transaction_id }}</td>
+            <td>{{ stxn.risk_level }}</td>
+            <td>{{ stxn.flagged_reason }}</td>
+            <td>{{ stxn.customer_name }}</td>
+            <td>{{ stxn.account_number }}</td>
+            <td>{{ stxn.sender_account }}</td>
+            <td>{{ stxn.receiver_account }}</td>
+            <td>{{ stxn.amount }}</td>
+            <td>{{ stxn.created_at }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9">No suspicious transactions found.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

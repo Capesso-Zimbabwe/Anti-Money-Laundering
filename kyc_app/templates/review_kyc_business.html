@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review KYC Business - {{ business.business_name }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen p-6">
+    <div class="mb-6">
+        <nav class="text-sm mb-4">
+            <ol class="list-none p-0 inline-flex">
+                <li class="flex items-center">
+                    <a href="{% url 'kyc_app:kyc_workflow_dashboard' %}" class="text-blue-600 hover:text-blue-800">KYC Dashboard</a>
+                    <svg class="fill-current w-3 h-3 mx-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg>
+                </li>
+                <li class="flex items-center text-gray-500">Review KYC Business</li>
+            </ol>
+        </nav>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Review KYC Business: {{ business.business_name }}</h1>
+    </div>
+
+    {% if error_message %}
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm" role="alert">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-500"></i>
+            </div>
+            <div class="ml-3">
+                <h4 class="text-lg font-medium">Screening Error</h4>
+                <p class="mt-1">{{ error_message }}</p>
+                <hr class="border-red-200 my-2">
+                <p class="text-sm">You can still make a manual decision based on the business information.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg">
+                    <h5 class="font-medium">Business Information</h5>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <p class="text-sm mb-2"><span class="font-medium">Business Name:</span> {{ business.business_name }}</p>
+                            <p class="text-sm mb-2"><span class="font-medium">Registration Number:</span> {{ business.registration_number }}</p>
+                            <p class="text-sm mb-2"><span class="font-medium">Incorporation Date:</span> {{ business.incorporation_date }}</p>
+                            <p class="text-sm mb-2"><span class="font-medium">Country of Registration:</span> {{ business.country_of_registration }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><span class="font-medium">Address:</span> {{ business.address }}</p>
+                            <p class="text-sm mb-2"><span class="font-medium">Website:</span> {{ business.website }}</p>
+                            <p class="text-sm mb-2"><span class="font-medium">Contact Email:</span> {{ business.contact_email }}</p>
+                            <p class="text-sm mb-2">
+                                <span class="font-medium">Current Status:</span> 
+                                <span class="px-2 py-1 text-xs rounded-full {% if workflow_state.current_state == 'APPROVED' %}bg-green-100 text-green-800{% elif workflow_state.current_state == 'REJECTED' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {{ workflow_state.current_state }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg">
+                    <h5 class="font-medium">Business Activities</h5>
+                </div>
+                <div class="p-4">
+                    <div class="mb-3">
+                        <p class="text-sm mb-2"><span class="font-medium">Business Type:</span> {{ business.business_type }}</p>
+                        <p class="text-sm mb-2"><span class="font-medium">Industry Sector:</span> {{ business.industry_sector }}</p>
+                        <p class="text-sm mb-2"><span class="font-medium">Description:</span></p>
+                        <p class="text-sm px-3 py-2 bg-gray-50 rounded-md">{{ business.business_description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if business.registration_document %}
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="bg-gray-600 text-white px-4 py-3 rounded-t-lg">
+                    <h5 class="font-medium">Registration Document</h5>
+                </div>
+                <div class="p-4 text-center">
+                    <a href="{{ business.registration_document.url }}" target="_blank" class="block mb-2">
+                        <div class="flex items-center justify-center p-4 bg-gray-50 rounded-md">
+                            <i class="fas fa-file-alt text-4xl text-gray-500"></i>
+                            <span class="ml-2 text-sm text-gray-700">{{ business.registration_document.name }}</span>
+                        </div>
+                    </a>
+                    <a href="{{ business.registration_document.url }}" target="_blank" class="inline-block bg-white border border-blue-500 text-blue-500 px-3 py-1 rounded text-sm hover:bg-blue-50">
+                        View Document
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg">
+                    <h5 class="font-medium">Beneficial Owners</h5>
+                </div>
+                <div class="p-4">
+                    {% if beneficial_owners %}
+                    <div class="space-y-4">
+                        {% for owner in beneficial_owners %}
+                        <div class="border border-gray-200 rounded-md p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <h6 class="font-medium">{{ owner.full_name }}</h6>
+                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                    {{ owner.ownership_percentage }}% Ownership
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                                <p class="text-sm"><span class="font-medium">Date of Birth:</span> {{ owner.date_of_birth }}</p>
+                                <p class="text-sm"><span class="font-medium">Nationality:</span> {{ owner.nationality }}</p>
+                                <p class="text-sm"><span class="font-medium">ID Type:</span> {{ owner.id_document_type }}</p>
+                                <p class="text-sm"><span class="font-medium">ID Number:</span> {{ owner.id_document_number }}</p>
+                            </div>
+                            <p class="text-sm mt-2"><span class="font-medium">Role:</span> {{ owner.role_in_business }}</p>
+                            
+                            {% if owner.id_document %}
+                            <div class="mt-2">
+                                <p class="text-sm font-medium mb-1">ID Document:</p>
+                                <a href="{{ owner.id_document.url }}" target="_blank" class="inline-block bg-white border border-blue-500 text-blue-500 px-2 py-1 rounded text-xs hover:bg-blue-50">
+                                    <i class="fas fa-eye mr-1"></i>View ID
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-sm text-gray-500">No beneficial owners recorded for this business.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Document Verification Section -->
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="bg-purple-600 text-white px-4 py-3 rounded-t-lg flex justify-between items-center">
+                    <h5 class="font-medium">Document Verification Status</h5>
+                    <a href="{% url 'kyc_app:business_documents' business_id=business.business_id %}" class="text-white text-sm underline hover:text-purple-100">
+                        View All Documents
+                    </a>
+                </div>
+                <div class="p-4">
+                    {% if documents %}
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-2">
+                            <h6 class="text-sm font-medium text-gray-700">Required Documents</h6>
+                            <span class="text-sm {% if all_documents_verified %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ verified_documents_count }}/{{ documents|length }} Verified
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <!-- Registration Document Status -->
+                            <div class="border rounded-md p-3 {% if has_verified_registration_doc %}bg-green-50 border-green-200{% elif has_rejected_registration_doc %}bg-red-50 border-red-200{% elif has_pending_registration_doc %}bg-yellow-50 border-yellow-200{% else %}bg-gray-50 border-gray-200{% endif %}">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-medium text-sm">Business Registration Document</span>
+                                        {% if business.registration_document %}
+                                        <div class="text-xs text-gray-500">File: {{ business.registration_document.name|truncatechars:30 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center">
+                                        {% if has_verified_registration_doc %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Verified
+                                        </span>
+                                        {% elif has_rejected_registration_doc %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            Rejected
+                                        </span>
+                                        {% elif has_pending_registration_doc %}
+                                        <a href="{% url 'kyc_app:verify_document' registration_doc_id %}" class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                            Verify Now
+                                        </a>
+                                        {% else %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                            Not Uploaded
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tax Document Status -->
+                            <div class="border rounded-md p-3 {% if has_verified_tax_doc %}bg-green-50 border-green-200{% elif has_rejected_tax_doc %}bg-red-50 border-red-200{% elif has_pending_tax_doc %}bg-yellow-50 border-yellow-200{% else %}bg-gray-50 border-gray-200{% endif %}">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-medium text-sm">Tax Document</span>
+                                        {% if business.tax_document %}
+                                        <div class="text-xs text-gray-500">File: {{ business.tax_document.name|truncatechars:30 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center">
+                                        {% if has_verified_tax_doc %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Verified
+                                        </span>
+                                        {% elif has_rejected_tax_doc %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            Rejected
+                                        </span>
+                                        {% elif has_pending_tax_doc %}
+                                        <a href="{% url 'kyc_app:verify_document' tax_doc_id %}" class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                            Verify Now
+                                        </a>
+                                        {% else %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                            Not Uploaded
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Documents -->
+                            {% for document in additional_documents %}
+                            <div class="border rounded-md p-3 {% if document.status == 'VERIFIED' %}bg-green-50 border-green-200{% elif document.status == 'REJECTED' %}bg-red-50 border-red-200{% else %}bg-yellow-50 border-yellow-200{% endif %}">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-medium text-sm">{{ document.get_document_type_display }}</span>
+                                        <div class="text-xs text-gray-500">Uploaded: {{ document.upload_date|date:"M d, Y" }}</div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        {% if document.status == 'VERIFIED' %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Verified
+                                        </span>
+                                        {% elif document.status == 'REJECTED' %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            Rejected
+                                        </span>
+                                        {% else %}
+                                        <a href="{% url 'kyc_app:verify_document' document.id %}" class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                            Verify Now
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if document.verification_notes %}
+                                <div class="mt-2 text-xs p-2 bg-white rounded border border-gray-200">
+                                    <span class="font-medium">Notes:</span> {{ document.verification_notes }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if missing_required_documents %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-3 rounded-r-md mb-3">
+                        <h6 class="font-medium text-sm">Missing Required Documents:</h6>
+                        <ul class="mt-1 ml-4 list-disc text-sm">
+                            {% for doc_type in missing_required_documents %}
+                            <li>{{ doc_type }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center p-4 bg-gray-50 rounded-md">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-gray-600 mb-2">No documents uploaded yet</p>
+                        <a href="{% url 'kyc_app:business_documents' business_id=business.business_id %}" class="inline-block bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                            Manage Documents
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="bg-white rounded-lg shadow-sm mb-6">
+                <div class="bg-blue-500 text-white px-4 py-3 rounded-t-lg">
+                    <h5 class="font-medium">KYC Screening Results</h5>
+                </div>
+                <div class="p-4">
+                    <!-- External Screening Option -->
+                    <div class="mb-4 p-3 border border-blue-300 rounded-md">
+                        <h5 class="font-medium text-gray-800 mb-3">External AML Screening</h5>
+                        <p class="text-gray-600 text-sm mb-3">Run external screening using Dilisense API for advanced checks.</p>
+                        
+                        <form action="{% url 'kyc_app:api_check_entity' %}" method="GET" target="_blank" class="flex flex-col">
+                            <input type="hidden" name="query" value="{{ business.business_name }}">
+                            <input type="hidden" name="source_type" value="ALL">
+                            <div class="flex items-center mb-2">
+                                <input type="text" name="query" value="{{ business.business_name }}" class="flex-1 border border-gray-300 rounded-md py-1 px-2 mr-2 text-sm" placeholder="Search business name (edit if needed)">
+                                <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded-md text-sm hover:bg-blue-700 transition">
+                                    <i class="fas fa-search mr-1"></i> Run External Check
+                                </button>
+                            </div>
+                            <div class="text-xs text-gray-500">This will open results in a new tab. Use this for deeper AML/Sanctions screening.</div>
+                        </form>
+                    </div>
+                    
+                    {% if test_result %}
+                    <div class="{% if test_result.risk_level == 'High' %}bg-red-100 text-red-800{% elif test_result.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %} p-4 rounded-md mb-4">
+                        <h4 class="font-medium">Risk Level: {{ test_result.risk_level }}</h4>
+                        <p class="mb-0">Screening Status: <span class="font-medium">{{ test_result.kyc_status }}</span></p>
+                    </div>
+                    
+                    {% if test_result.verification_notes %}
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Verification Notes:</h5>
+                        <div class="border border-gray-300 rounded-md">
+                            <div class="p-3">
+                                <pre class="whitespace-pre-wrap font-sans text-sm text-gray-700">{{ test_result.verification_notes }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">Risk Factors:</h5>
+                            <ul class="space-y-1">
+                                {% if test_result.state_owned_enterprise %}
+                                <li class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-building mr-2"></i> State-Owned Enterprise
+                                </li>
+                                {% endif %}
+                                
+                                {% if test_result.sanctions_list_check %}
+                                <li class="bg-red-100 text-red-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-ban mr-2"></i> Matches Sanctions List
+                                </li>
+                                {% endif %}
+                                
+                                {% if test_result.watchlist_check %}
+                                <li class="bg-red-100 text-red-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i> On Watchlist
+                                </li>
+                                {% endif %}
+                                
+                                {% if test_result.adverse_media_check %}
+                                <li class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-newspaper mr-2"></i> Adverse Media
+                                </li>
+                                {% endif %}
+                                
+                                {% if test_result.high_risk_country %}
+                                <li class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-globe mr-2"></i> High Risk Country
+                                </li>
+                                {% endif %}
+                                
+                                {% if test_result.suspicious_activity_flag %}
+                                <li class="bg-red-100 text-red-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-flag mr-2"></i> Suspicious Activity
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">Additional Actions:</h5>
+                            <ul class="space-y-1">
+                                {% if test_result.enhanced_due_diligence_required %}
+                                <li class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-search-plus mr-2"></i> Enhanced Due Diligence Required
+                                </li>
+                                {% endif %}
+                                
+                                {% if test_result.transaction_monitoring_required %}
+                                <li class="bg-blue-100 text-blue-800 px-3 py-2 rounded-md flex items-center">
+                                    <i class="fas fa-chart-line mr-2"></i> Transaction Monitoring Required
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 mt-3"><span class="font-medium">Screening Date:</span> {{ test_result.created_at }}</p>
+                    {% else %}
+                    <div class="bg-gray-100 text-gray-700 p-4 rounded-md mb-4">
+                        <h4 class="font-medium">No Recent Screening Results</h4>
+                        <p class="text-sm">No screening results were generated in this session.</p>
+                    </div>
+                    
+                    {% if kyc_tests %}
+                    <h5 class="text-sm font-medium text-gray-700 mb-2">Past Screening Results:</h5>
+                    <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md">
+                        {% for test in kyc_tests|slice:":3" %}
+                        <li class="flex justify-between items-center p-3 text-sm">
+                            <span>{{ test.created_at|date:"M d, Y" }} - {{ test.verification_notes|truncatechars:50 }}</span>
+                            <span class="px-2 py-1 text-xs rounded-full {% if test.risk_level == 'High' %}bg-red-100 text-red-800{% elif test.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ test.risk_level }}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm">
+                <div class="bg-gray-800 text-white px-4 py-3 rounded-t-lg">
+                    <h5 class="font-medium">Review Decision</h5>
+                </div>
+                <div class="p-4">
+                    {% if not all_documents_verified %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded-r-md">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium">Document Verification Required</h3>
+                                <div class="mt-2 text-sm">
+                                    <p>All required documents must be verified before approval. 
+                                    {% if has_pending_documents %}
+                                    There are <strong>{{ pending_documents_count }}</strong> pending documents that need verification.
+                                    {% endif %}
+                                    {% if missing_required_documents %}
+                                    There are <strong>{{ missing_required_documents|length }}</strong> missing required documents.
+                                    {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if test_result %}
+                    <div class="{% if test_result.sanctions_list_check or test_result.suspicious_activity_flag %}bg-red-50 border-l-4 border-red-500 text-red-700{% elif test_result.risk_level == 'High' %}bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700{% else %}bg-green-50 border-l-4 border-green-500 text-green-700{% endif %} p-4 mb-4 rounded-r-md">
+                        <h5 class="font-medium">Recommended Action:</h5>
+                        <p>
+                            {% if test_result.sanctions_list_check or test_result.suspicious_activity_flag %}
+                                <i class="fas fa-times-circle text-red-500 mr-1"></i> <span class="font-medium">Rejection Recommended</span> - Business appears on sanctions list or has suspicious activity.
+                            {% elif test_result.risk_level == 'High' %}
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mr-1"></i> <span class="font-medium">Careful Review Required</span> - Business has been flagged as high risk.
+                            {% else %}
+                                <i class="fas fa-check-circle text-green-500 mr-1"></i> <span class="font-medium">Approval Recommended</span> - No major risk factors detected.
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Review Notes</label>
+                            <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" id="notes" name="notes" rows="3" placeholder="Add your review notes here..."></textarea>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button type="submit" name="action" value="approve" 
+                                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm
+                                           {% if not all_documents_verified %}opacity-50 cursor-not-allowed{% endif %}"
+                                    {% if not all_documents_verified %}disabled title="All required documents must be uploaded and verified before approval"{% endif %}>
+                                <i class="fas fa-check-circle mr-1"></i> Approve Business
+                            </button>
+                            
+                            <button type="button" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition text-sm" 
+                                    onclick="document.getElementById('rejectModal').classList.remove('hidden')">
+                                <i class="fas fa-times-circle mr-1"></i> Reject Business
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="bg-red-600 text-white px-4 py-3 rounded-t-lg flex justify-between items-center">
+            <h5 class="font-medium">Reject KYC Business</h5>
+            <button type="button" class="text-white hover:text-gray-200" 
+                    onclick="document.getElementById('rejectModal').classList.add('hidden')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="p-4">
+                <p class="mb-4">You are about to reject the KYC business profile for <span class="font-medium">{{ business.business_name }}</span>.</p>
+                <div class="mb-4">
+                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-1">Rejection Reason</label>
+                    <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" id="rejection_reason" name="rejection_reason" required>
+                        <option value="">Select a reason...</option>
+                        <option value="Sanctions Match">Sanctions Match</option>
+                        <option value="Suspicious Ownership Structure">Suspicious Ownership Structure</option>
+                        <option value="Document Verification Failed">Document Verification Failed</option>
+                        <option value="Missing Required Documents">Missing Required Documents</option>
+                        <option value="High Risk Business Activity">High Risk Business Activity</option>
+                        <option value="High Risk Jurisdiction">High Risk Jurisdiction</option>
+                        <option value="Adverse Media">Adverse Media</option>
+                        <option value="Suspicious Activity">Suspicious Activity</option>
+                        <option value="Shell Company">Shell Company</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                    <textarea class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" id="notes_reject" name="notes" rows="3" placeholder="Add your rejection notes here..."></textarea>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 rounded-b-lg flex justify-end space-x-2">
+                <button type="button" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition text-sm"
+                        onclick="document.getElementById('rejectModal').classList.add('hidden')">
+                    Cancel
+                </button>
+                <button type="submit" name="action" value="reject" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition text-sm">
+                    <i class="fas fa-times-circle mr-1"></i> Confirm Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Simple modal toggle for Tailwind
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+    });
+    
+    // Close modal if clicking outside of it
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('rejectModal');
+        const modalContent = modal.querySelector('div');
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+    
+    // Copy notes to rejection modal when typing
+    document.addEventListener('DOMContentLoaded', function() {
+        const notesField = document.getElementById('notes');
+        const rejectNotesField = document.getElementById('notes_reject');
+        const approveButton = document.querySelector('button[name="action"][value="approve"]');
+        
+        if (notesField && rejectNotesField) {
+            notesField.addEventListener('input', function() {
+                rejectNotesField.value = this.value;
+            });
+        }
+        
+        // Add click handler for approve button when disabled to show message
+        if (approveButton && approveButton.disabled) {
+            approveButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert("All required documents must be uploaded and verified before approval.");
+            });
+        }
+    });
+</script>
+{% endblock %} 

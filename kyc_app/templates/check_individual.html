@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">AML Screening</h1>
+    
+    <!-- Search Form -->
+    <div class="bg-white rounded-lg shadow-sm mb-6">
+        <div class="p-4">
+            <form
+                id="searchForm"
+                method="GET"
+                action="{% url 'kyc_app:check_individual' %}"
+                class="flex flex-col md:flex-row"
+            >
+                <input
+                    id="search_query"
+                    type="text"
+                    name="query"
+                    placeholder="Search for a person or company..."
+                    class="flex-1 border border-gray-300 rounded-md py-2 px-3 md:rounded-r-none"
+                    value="{{ request.GET.query|default:'' }}"
+                    required
+                />
+                
+                <!-- Hidden input to store the filter (source_type) -->
+                <input
+                    type="hidden"
+                    name="source_type"
+                    id="sourceType"
+                    value="{{ request.GET.source_type|default:'ALL' }}"
+                />
+                
+                <!-- Search Button -->
+                <button
+                    type="submit"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-md md:rounded-l-none hover:bg-blue-700 transition mt-2 md:mt-0"
+                >
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if results %}
+    <div class="mb-6">
+        <a href="{% url 'kyc_app:download_report' %}?query={{ request.GET.query|urlencode }}&source_type={{ request.GET.source_type|default:'ALL'|urlencode }}" 
+           class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition inline-flex items-center mb-3 mr-3">
+            <i class="fas fa-file-pdf mr-2"></i> Download Report
+        </a>
+        
+        <div class="inline-flex flex-wrap bg-white rounded-md shadow-sm">
+            <a href="javascript:void(0)" data-filter="ALL" 
+               class="tab-link px-4 py-2 text-sm {% if request.GET.source_type == 'ALL' or not request.GET.source_type %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %} transition rounded-l-md">ALL</a>
+            <a href="javascript:void(0)" data-filter="SANCTION" 
+               class="tab-link px-4 py-2 text-sm {% if request.GET.source_type == 'SANCTION' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %} transition">SANCTIONS</a>
+            <a href="javascript:void(0)" data-filter="PEP" 
+               class="tab-link px-4 py-2 text-sm {% if request.GET.source_type == 'PEP' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %} transition">PEPS</a>
+            <a href="javascript:void(0)" data-filter="CRIMINAL" 
+               class="tab-link px-4 py-2 text-sm {% if request.GET.source_type == 'CRIMINAL' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %} transition rounded-r-md">CRIMINALS</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm">
+        <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg">
+            <h3 class="font-medium">Results ({{ results.total_hits }})</h3>
+        </div>
+        <div class="p-4">
+            {% if results.found_records %}
+                {% for record in results.found_records %}
+                <div class="bg-white shadow rounded-lg mb-4">
+                    <!-- Record Header (Collapsible Trigger) -->
+                    <div class="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition rounded-lg" onclick="toggleDetails('details-{{ forloop.counter }}')">
+                        <div>
+                            <h3 class="text-xs font-bold">
+                                {{ record.name }}
+                                {% if record.source_type == 'PEP' %}
+                                    <span class="ml-2 px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">PEP</span>
+                                {% elif record.source_type == 'SANCTION' %}
+                                    <span class="ml-2 px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">SANCTION</span>
+                                {% elif record.source_type == 'CRIMINAL' %}
+                                    <span class="ml-2 px-2 py-1 text-xs rounded-full bg-gray-700 text-white">CRIMINAL</span>
+                                {% endif %}
+                            </h3>
+                            <p class="text-sm text-gray-500">Source ID: {{ record.source_id }}</p>
+                        </div>
+                        <div>
+                            <span>▼</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Collapsible Details -->
+                    <div id="details-{{ forloop.counter }}" class="hidden p-4 border-t border-gray-200">
+                        <table class="table-auto w-full text-sm">
+                            <tbody>
+                                {% if record.source_type %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Source Type:</th><td class="py-1 px-2">{{ record.source_type }}</td></tr>{% endif %}
+                                {% if record.source_id %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Source ID:</th><td class="py-1 px-2">{{ record.source_id }}</td></tr>{% endif %}
+                                {% if record.id %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Unique ID:</th><td class="py-1 px-2">{{ record.id }}</td></tr>{% endif %}
+                                {% if record.entity_type %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Entity Type:</th><td class="py-1 px-2">{{ record.entity_type }}</td></tr>{% endif %}
+                                {% if record.list_date %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">List Date:</th><td class="py-1 px-2">{{ record.list_date }}</td></tr>{% endif %}
+                                {% if record.gender %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Gender:</th><td class="py-1 px-2">{{ record.gender }}</td></tr>{% endif %}
+                                {% if record.tl_name %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Transliterated Name:</th><td class="py-1 px-2">{{ record.tl_name }}</td></tr>{% endif %}
+                                {% if record.alias_names %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Alias Names:</th><td class="py-1 px-2">{{ record.alias_names|join:", " }}</td></tr>{% endif %}
+                                {% if record.last_names %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Last Names:</th><td class="py-1 px-2">{{ record.last_names|join:", " }}</td></tr>{% endif %}
+                                {% if record.given_names %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Given Names:</th><td class="py-1 px-2">{{ record.given_names|join:", " }}</td></tr>{% endif %}
+                                {% if record.alias_given_names %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Alias Given Names:</th><td class="py-1 px-2">{{ record.alias_given_names|join:", " }}</td></tr>{% endif %}
+                                {% if record.name_remarks %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Name Remarks:</th><td class="py-1 px-2">{{ record.name_remarks|join:", " }}</td></tr>{% endif %}
+                                {% if record.spouse %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Spouse:</th><td class="py-1 px-2">{{ record.spouse|join:", " }}</td></tr>{% endif %}
+                                {% if record.parents %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Parents:</th><td class="py-1 px-2">{{ record.parents|join:", " }}</td></tr>{% endif %}
+                                {% if record.children %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Children:</th><td class="py-1 px-2">{{ record.children|join:", " }}</td></tr>{% endif %}
+                                {% if record.siblings %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Siblings:</th><td class="py-1 px-2">{{ record.siblings|join:", " }}</td></tr>{% endif %}
+                                {% if record.date_of_birth %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Date of Birth:</th><td class="py-1 px-2">{{ record.date_of_birth|join:", " }}</td></tr>{% endif %}
+                                {% if record.date_of_birth_remarks %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">DOB Remarks:</th><td class="py-1 px-2">{{ record.date_of_birth_remarks|join:", " }}</td></tr>{% endif %}
+                                {% if record.place_of_birth %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Place of Birth:</th><td class="py-1 px-2">{{ record.place_of_birth|join:", " }}</td></tr>{% endif %}
+                                {% if record.place_of_birth_remarks %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Place of Birth Remarks:</th><td class="py-1 px-2">{{ record.place_of_birth_remarks|join:", " }}</td></tr>{% endif %}
+                                {% if record.address %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Address:</th><td class="py-1 px-2">{{ record.address|join:"<br>"|safe }}</td></tr>{% endif %}
+                                {% if record.address_remarks %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Address Remarks:</th><td class="py-1 px-2">{{ record.address_remarks|join:", " }}</td></tr>{% endif %}
+                                {% if record.citizenship %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Citizenship:</th><td class="py-1 px-2">{{ record.citizenship|join:", " }}</td></tr>{% endif %}
+                                {% if record.citizenship_remarks %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Citizenship Remarks:</th><td class="py-1 px-2">{{ record.citizenship_remarks|join:", " }}</td></tr>{% endif %}
+                                {% if record.sanction_details %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Sanction Details:</th><td class="py-1 px-2">{{ record.sanction_details|join:", " }}</td></tr>{% endif %}
+                                {% if record.description %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Description:</th><td class="py-1 px-2">{{ record.description|join:", " }}</td></tr>{% endif %}
+                                {% if record.occupations %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Occupations:</th><td class="py-1 px-2">{{ record.occupations|join:", " }}</td></tr>{% endif %}
+                                {% if record.positions %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Positions:</th><td class="py-1 px-2">{{ record.positions|join:", " }}</td></tr>{% endif %}
+                                {% if record.political_parties %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Political Parties:</th><td class="py-1 px-2">{{ record.political_parties|join:", " }}</td></tr>{% endif %}
+                                {% if record.links %}
+                                <tr>
+                                    <th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Links:</th>
+                                    <td class="py-1 px-2">
+                                        {% for link in record.links %}
+                                            <a href="{{ link }}" target="_blank" class="text-blue-500 underline">{{ link }}</a><br>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if record.titles %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Titles:</th><td class="py-1 px-2">{{ record.titles|join:", " }}</td></tr>{% endif %}
+                                {% if record.functions %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Functions:</th><td class="py-1 px-2">{{ record.functions|join:", " }}</td></tr>{% endif %}
+                                {% if record.other_information %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Other Info:</th><td class="py-1 px-2">{{ record.other_information|join:", " }}</td></tr>{% endif %}
+                                {% if record.source_country %}<tr><th class="font-bold py-1 px-2 bg-gray-50 w-1/4">Source Country:</th><td class="py-1 px-2">{{ record.source_country }}</td></tr>{% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="bg-blue-50 text-blue-700 p-4 rounded-md">
+                    No records found matching your search criteria.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block scripts %}
+<script>
+    // Toggle function for collapsible details
+    function toggleDetails(id) {
+        var element = document.getElementById(id);
+        if (element.classList.contains('hidden')) {
+            element.classList.remove('hidden');
+        } else {
+            element.classList.add('hidden');
+        }
+    }
+
+    // Automatic form submission when user clicks filters
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('searchForm');
+        const sourceTypeInput = document.getElementById('sourceType');
+        const searchQuery = document.getElementById('search_query');
+
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.addEventListener('click', function() {
+                sourceTypeInput.value = this.getAttribute('data-filter');
+                if (searchQuery.value.trim() !== '') {
+                    // re-submit the form
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

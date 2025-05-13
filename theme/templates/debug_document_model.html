@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Document Model Debug View</h1>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            {{ model_name }} Model Information (Table: {{ table_name }})
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">Document Statistics</div>
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>Total Documents</th>
+                                        <td>{{ total_documents }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Documents with Profile</th>
+                                        <td>{{ docs_with_profile }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Documents with Business</th>
+                                        <td>{{ docs_with_business }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Documents without Relations</th>
+                                        <td>{{ docs_without_relation }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Orphaned Documents</th>
+                                        <td>{{ orphaned_docs_count }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">Document Status Distribution</div>
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for status in status_stats %}
+                                    <tr>
+                                        <td>{{ status.status }}</td>
+                                        <td>{{ status.count }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="2">No status data available</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">Document Type Distribution</div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Document Type</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for type in doc_type_stats %}
+                            <tr>
+                                <td>{{ type.document_type }}</td>
+                                <td>{{ type.count }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2">No document type data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">Document Type by Relation</div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Document Type</th>
+                                <th>Profile Count</th>
+                                <th>Business Count</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in relation_stats %}
+                            <tr>
+                                <td>{{ stat.document_type }}</td>
+                                <td>{{ stat.profile_count }}</td>
+                                <td>{{ stat.business_count }}</td>
+                                <td>{{ stat.total }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No relation data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">Document Model Field Definitions</div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Field Name</th>
+                                <th>Type</th>
+                                <th>Null</th>
+                                <th>Blank</th>
+                                <th>Choices</th>
+                                <th>Help Text</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for field in document_fields %}
+                            <tr>
+                                <td>{{ field.name }}</td>
+                                <td>{{ field.type }}</td>
+                                <td>{{ field.null }}</td>
+                                <td>{{ field.blank }}</td>
+                                <td>
+                                    {% if field.choices %}
+                                    <ul class="mb-0 ps-3">
+                                        {% for choice in field.choices %}
+                                        <li>{{ choice.0 }}: {{ choice.1 }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ field.help_text|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6">No field data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

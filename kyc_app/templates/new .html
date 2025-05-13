@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC/AML Digital Intake Form</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --white: #ffffff;
+            --light-gray: #f9fafb;
+            --mid-gray: #e5e7eb;
+            --dark-gray: #4b5563;
+            --form-width: 800px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-gray);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: var(--form-width);
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .form-header {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 3px solid var(--primary);
+            margin-top: 30px;
+        }
+        
+        .form-header h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: var(--dark-gray);
+            font-size: 16px;
+        }
+        
+        .form-container {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            border: 1px solid var(--mid-gray);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .section-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--mid-gray);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            color: var(--primary);
+        }
+        
+        .section-title svg {
+            margin-right: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--mid-gray);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        .required {
+            color: var(--danger);
+        }
+        
+        .helper-text {
+            font-size: 12px;
+            color: var(--secondary);
+            margin-top: 5px;
+        }
+        
+        .risk-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .risk-low {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .risk-medium {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+        
+        .risk-high {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--mid-gray);
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+        }
+        
+        .file-upload p {
+            margin: 10px 0;
+            color: var(--secondary);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--mid-gray);
+        }
+        
+        .form-footer {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+        }
+        
+        .progress-step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--mid-gray);
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .progress-step.active {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .progress-step.completed {
+            background-color: var(--success);
+            color: var(--white);
+        }
+        
+        .progress-line {
+            height: 3px;
+            width: 30px;
+            background-color: var(--mid-gray);
+            margin-right: 5px;
+        }
+        
+        .progress-line.completed {
+            background-color: var(--success);
+        }
+        
+        .checkbox-group {
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin-right: 10px;
+            margin-top: 3px;
+        }
+
+        fieldset {
+            border: 1px solid var(--mid-gray);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: 500;
+        }
+        
+        .button-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .button-link:hover {
+            text-decoration: underline;
+        }
+
+        .tooltiptext {
+          visibility: hidden;
+          width: 250px;
+          background-color: black;
+          color: #fff;
+          text-align: center;
+          border-radius: 6px;
+          padding: 5px;
+          position: absolute;
+          z-index: 1;
+          bottom: 125%;
+          left: 50%;
+          margin-left: -125px;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+
+        .tooltip {
+          position: relative;
+          display: inline-block;
+          margin-left: 5px;
+          cursor: help;
+        }
+
+        .tooltip:hover .tooltiptext {
+          visibility: visible;
+          opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-header">
+            <h1>KYC/AML Digital Intake Form</h1>
+            <p>Complete this form to help us meet our regulatory obligations and establish a business relationship. All information provided is kept confidential and secure.</p>
+        </div>
+        <div class="form-container">
+            <form id="kyc-aml-form">
+                <!-- SECTION 1: Business Entity Information -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M19 21V5C19 3.9 18.1 3 17 3H7C5.9 3 5 3.9 5 5V21M19 21H5M19 21H21M5 21H3M9 7H15M9 11H15M9 15H13" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Business Entity Information
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="entity-name">Legal Entity Name <span class="required">*</span></label>
+                        <input type="text" id="entity-name" name="entity-name" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="entity-type">Entity Type <span class="required">*</span></label>
+                                <select id="entity-type" name="entity-type" required>
+                                    <option value="">Select...</option>
+                                    <option value="corporation">Corporation</option>
+                                    <option value="llc">Limited Liability Company (LLC)</option>
+                                    <option value="partnership">Partnership</option>
+                                    <option value="sole-proprietorship">Sole Proprietorship</option>
+                                    <option value="trust">Trust</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="date-established">Date Established <span class="required">*</span></label>
+                                <input type="date" id="date-established" name="date-established" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="registration-number">Registration/Identification Number <span class="required">*</span></label>
+                                <input type="text" id="registration-number" name="registration-number" required>
+                                <div class="helper-text">Enter your company registration number, EIN, or tax ID</div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tax-jurisdiction">Tax Jurisdiction <span class="required">*</span></label>
+                                <input type="text" id="tax-jurisdiction" name="tax-jurisdiction" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="business-address">Registered Business Address <span class="required">*</span></label>
+                        <input type="text" id="business-address" name="business-address" placeholder="Street Address" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <input type="text" id="business-city" name="business-city" placeholder="City" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <input type="text" id="business-state" name="business-state" placeholder="State/Province" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <input type="text" id="business-zip" name="business-zip" placeholder="ZIP/Postal Code" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="business-country">Country <span class="required">*</span></label>
+                        <select id="business-country" name="business-country" required>
+                            <option value="">Select...</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <!-- More countries would be added here -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Entity Verification Documents <span class="required">*</span></label>
+                        <div class="file-upload">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 16.5L12 11.5L17 16.5" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 11.5V21" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20.39 18.39C21.3654 17.8583 22.1359 17.0169 22.5799 15.9986C23.024 14.9804 23.1162 13.8432 22.8422 12.7667C22.5682 11.6901 21.9435 10.7355 21.0667 10.0534C20.1899 9.37138 19.1109 9.00073 18 9H16.74C16.4373 7.82924 15.8732 6.74233 15.09 5.82099C14.3067 4.89965 13.3249 4.16785 12.2203 3.68061C11.1158 3.19336 9.91941 2.96336 8.72999 3.00787C7.54058 3.05239 6.3661 3.3703 5.30077 3.93747C4.23545 4.50465 3.30281 5.30565 2.57173 6.28360C1.84066 7.26156 1.32661 8.39025 1.06311 9.5879C0.799616 10.7855 0.794085 12.0203 1.04689 13.2208C1.29969 14.4214 1.80519 15.5564 2.53 16.54" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p>Drag and drop or click to upload</p>
+                            <p class="helper-text">Upload certificate of incorporation, business license, or registration documents (PDF or image files, max 10MB)</p>
+                            <input type="file" id="entity-documents" name="entity-documents" style="display: none;" multiple required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 2: Business Activity -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 4H18C19.1046 4 20 4.89543 20 6V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V6C4 4.89543 4.89543 4 6 4H8" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M15 2H9C8.44772 2 8 2.44772 8 3V5C8 5.55228 8.44772 6 9 6H15C15.5523 6 16 5.55228 16 5V3C16 2.44772 15.5523 2 15 2Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 12L11 14L15 10" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Business Activity Information
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="primary-business">Primary Business Activity <span class="required">*</span></label>
+                        <select id="primary-business" name="primary-business" required>
+                            <option value="">Select...</option>
+                            <option value="financial">Financial Services</option>
+                            <option value="technology">Technology</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="retail">Retail</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="real-estate">Real Estate</option>
+                            <option value="professional">Professional Services</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="business-description">Detailed Business Description <span class="required">*</span></label>
+                        <textarea id="business-description" name="business-description" placeholder="Provide a detailed description of your business activities..." required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="annual-revenue">Estimated Annual Revenue <span class="required">*</span></label>
+                                <select id="annual-revenue" name="annual-revenue" required>
+                                    <option value="">Select...</option>
+                                    <option value="0-1M">$0 - $1 million</option>
+                                    <option value="1M-10M">$1 million - $10 million</option>
+                                    <option value="10M-50M">$10 million - $50 million</option>
+                                    <option value="50M-100M">$50 million - $100 million</option>
+                                    <option value="100M+">$100 million+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="employee-count">Number of Employees <span class="required">*</span></label>
+                                <select id="employee-count" name="employee-count" required>
+                                    <option value="">Select...</option>
+                                    <option value="1-10">1-10</option>
+                                    <option value="11-50">11-50</option>
+                                    <option value="51-250">51-250</option>
+                                    <option value="251-1000">251-1000</option>
+                                    <option value="1000+">1000+</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Countries of Operation <span class="required">*</span></label>
+                        <div class="helper-text">Select all countries where your business operates or has significant business relationships</div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="country-us" name="countries-operation" value="US">
+                                <label for="country-us">United States</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="country-ca" name="countries-operation" value="CA">
+                                <label for="country-ca">Canada</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="country-uk" name="countries-operation" value="UK">
+                                <label for="country-uk">United Kingdom</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="country-eu" name="countries-operation" value="EU">
+                                <label for="country-eu">European Union</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="country-asia" name="countries-operation" value="ASIA">
+                                <label for="country-asia">Asia</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="country-other" name="countries-operation" value="OTHER">
+                                <label for="country-other">Other</label>
+                                <input type="text" id="country-other-specify" name="country-other-specify" placeholder="Please specify" style="width: 60%; margin-left: 10px;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="website">Company Website</label>
+                        <input type="url" id="website" name="website" placeholder="https://www.example.com">
+                    </div>
+                </div>
+                
+                <!-- SECTION 3: Beneficial Ownership -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M23 20.9999V18.9999C22.9993 18.1136 22.7044 17.2527 22.1614 16.5522C21.6184 15.8517 20.8581 15.3515 20 15.1299" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 3.12988C16.8604 3.35018 17.623 3.85058 18.1676 4.55219C18.7122 5.2538 19.0078 6.11671 19.0078 7.00488C19.0078 7.89305 18.7122 8.75596 18.1676 9.45757C17.623 10.1592 16.8604 10.6596 16 10.8799" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Beneficial Ownership Information
+                            <div class="tooltip">ⓘ
+                                <span class="tooltiptext">Beneficial owners are individuals who ultimately own or control 25% or more of a legal entity.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Does any individual own 25% or more of the entity? <span class="required">*</span></label>
+                        <div class="form-row">
+                            <div class="form-col" style="flex: 0 0 auto;">
+                                <input type="radio" id="beneficial-owner-yes" name="has-beneficial-owner" value="yes" required>
+                                <label for="beneficial-owner-yes" style="display: inline;">Yes</label>
+                            </div>
+                            <div class="form-col" style="flex: 0 0 auto;">
+                                <input type="radio" id="beneficial-owner-no" name="has-beneficial-owner" value="no" required>
+                                <label for="beneficial-owner-no" style="display: inline;">No</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Beneficial Owner 1 -->
+                    <fieldset>
+                        <legend>Beneficial Owner 1</legend>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="bo1-first-name">First Name <span class="required">*</span></label>
+                                    <input type="text" id="bo1-first-name" name="bo1-first-name">
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="bo1-last-name">Last Name <span class="required">*</span></label>
+                                    <input type="text" id="bo1-last-name" name="bo1-last-name">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="bo1-dob">Date of Birth <span class="required">*</span></label>
+                                    <input type="date" id="bo1-dob" name="bo1-dob">
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="bo1-nationality">Nationality <span class="required">*</span></label>
+                                    <input type="text" id="bo1-nationality" name="bo1-nationality">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bo1-address">Residential Address <span class="required">*</span></label>
+                            <input type="text" id="bo1-address" name="bo1-address" placeholder="Street Address">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <input type="text" id="bo1-city" name="bo1-city" placeholder="City">
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <input type="text" id="bo1-state" name="bo1-state" placeholder="State/Province">
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <input type="text" id="bo1-zip" name="bo1-zip" placeholder="ZIP/Postal Code">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bo1-country">Country <span class="required">*</span></label>
+                            <select id="bo1-country" name="bo1-country">
+                                <option value="">Select...</option>
+                                <option value="US">United States</option>
+                                <option value="CA">Canada</option>
+                                <option value="UK">United Kingdom</option>
+                                <!-- More countries would be added here -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bo1-ownership">Ownership Percentage <span class="required">*</span></label>
+                            <input type="number" id="bo1-ownership" name="bo1-ownership" min="25" max="100">
+                            <div class="helper-text">Enter percentage between 25-100</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Identification Document <span class="required">*</span></label>
+                            <div class="file-upload">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 16.5L12 11.5L17 16.5" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 11.5V21" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M20.39 18.39C21.3654 17.8583 22.1359 17.0169 22.5799 15.9986C23.024 14.9804 23.1162 13.8432 22.8422 12.7667C22.5682 11.6901 21.9435 10.7355 21.0667 10.0534C20.1899 9.37138 19.1109 9.00073 18 9H16.74C16.4373 7.82924 15.8732 6.74233 15.09 5.82099C14.3067 4.89965 13.3249 4.16785 12.2203 3.68061C11.1158 3.19336 9.91941 2.96336 8.72999 3.00787C7.54058 3.05239 6.3661 3.3703 5.30077 3.93747C4.23545 4.50465 3.30281 5.30565 2.57173 6.28360C1.84066 7.26156 1.32661 8.39025 1.06311 9.5879C0.799616 10.7855 0.794085 12.0203 1.04689 13.2208C1.29969 14.4214 1.80519 15.5564 2.53 16.54" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p>Drag and drop or click to upload</p>
+                                <p class="helper-text">Upload passport, driver's license, or national ID (PDF or image files, max 5MB)</p>
+                                <input type="file" id="bo1-id-document" name="bo1-id-document" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Proof of Address <span class="required">*</span></label>
+                            <div class="file-upload">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 16.5L12 11.5L17 16.5" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 11.5V21" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M20.39 18.39C21.3654 17.8583 22.1359 17.0169 22.5799 15.9986C23.024 14.9804 23.1162 13.8432 22.8422 12.7667C22.5682 11.6901 21.9435 10.7355 21.0667 10.0534C20.1899 9.37138 19.1109 9.00073 18 9H16.74C16.4373 7.82924 15.8732 6.74233 15.09 5.82099C14.3067 4.89965 13.3249 4.16785 12.2203 3.68061C11.1158 3.19336 9.91941 2.96336 8.72999 3.00787C7.54058 3.05239 6.3661 3.3703 5.30077 3.93747C4.23545 4.50465 3.30281 5.30565 2.57173 6.28360C1.84066 7.26156 1.32661 8.39025 1.06311 9.5879C0.799616 10.7855 0.794085 12.0203 1.04689 13.2208C1.29969 14.4214 1.80519 15.5564 2.53 16.54" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p>Drag and drop or click to upload</p>
+                                <p class="helper-text">Upload utility bill, bank statement, or official correspondence (not older than 3 months)</p>
+                                <input type="file" id="bo1-address-proof" name="bo1-address-proof" style="display: none;">
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <div class="form-group" style="text-align: center;">
+                        <button type="button" class="btn-secondary">+ Add Another Beneficial Owner</button>
+                    </div>
+                </div>
+                
+                <!-- SECTION 4: Directors and Officers -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17 11L19 13L23 9" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Directors and Officers Information
+                        </div>
+                    </div>
+                    
+                    <!-- Director/Officer 1 -->
+                    <fieldset>
+                        <legend>Director/Officer 1</legend>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="director1-first-name">First Name <span class="required">*</span></label>
+                                    <input type="text" id="director1-first-name" name="director1-first-name" required>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="director1-last-name">Last Name <span class="required">*</span></label>
+                                    <input type="text" id="director1-last-name" name="director1-last-name" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="director1-title">Title/Position <span class="required">*</span></label>
+                            <input type="text" id="director1-title" name="director1-title" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="director1-dob">Date of Birth <span class="required">*</span></label>
+                                    <input type="date" id="director1-dob" name="director1-dob" required>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="director1-nationality">Nationality <span class="required">*</span></label>
+                                    <input type="text" id="director1-nationality" name="director1-nationality" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="director1-address">Residential Address <span class="required">*</span></label>
+                            <input type="text" id="director1-address" name="director1-address" placeholder="Street Address" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="director1-pep" name="director1-pep">
+                                <label for="director1-pep">This person is a Politically Exposed Person (PEP) or has a close association with a PEP</label>
+                                <div class="tooltip">ⓘ
+                                    <span class="tooltiptext">A Politically Exposed Person is someone who holds a prominent public position or has close ties to such a person.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <div class="form-group" style="text-align: center;">
+                        <button type="button" class="btn-secondary">+ Add Another Director/Officer</button>
+                    </div>
+                </div>
+                
+                <!-- SECTION 5: AML Risk Assessment -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 16V12" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 8H12.01" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            AML Risk Assessment
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Business Relationship Purpose <span class="required">*</span></label>
+                        <div class="helper-text">Describe the purpose and intended nature of your business relationship with us</div>
+                        <textarea id="relationship-purpose" name="relationship-purpose" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Expected Transaction Patterns <span class="required">*</span></label>
+                        <div class="helper-text">Select the types of transactions you expect to conduct</div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="transaction-domestic" name="transaction-patterns" value="domestic">
+                                <label for="transaction-domestic">Domestic transfers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="transaction-international" name="transaction-patterns" value="international">
+                                <label for="transaction-international">International transfers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="transaction-large" name="transaction-patterns" value="large">
+                                <label for="transaction-large">Large transactions (>$10,000)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="transaction-crypto" name="transaction-patterns" value="crypto">
+                                <label for="transaction-crypto">Cryptocurrency-related transactions</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="transaction-cash" name="transaction-patterns" value="cash">
+                                <label for="transaction-cash">Cash-intensive business</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="transaction-other" name="transaction-patterns" value="other">
+                                <label for="transaction-other">Other</label>
+                                <input type="text" id="transaction-other-specify" name="transaction-other-specify" placeholder="Please specify" style="width: 60%; margin-left: 10px;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Source of Funds <span class="required">*</span></label>
+                        <div class="helper-text">Indicate the primary source of funds for your business operations</div>
+                        <select id="funds-source" name="funds-source" required>
+                            <option value="">Select...</option>
+                            <option value="business-operations">Business Operations/Revenue</option>
+                            <option value="investments">Investment Income</option>
+                            <option value="financing">Financing/Loans</option>
+                            <option value="sale-of-assets">Sale of Assets</option>
+                            <option value="owner-capital">Owner's Capital</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Documentation of Source of Funds <span class="required">*</span></label>
+                        <div class="file-upload">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 16.5L12 11.5L17 16.5" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 11.5V21" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20.39 18.39C21.3654 17.8583 22.1359 17.0169 22.5799 15.9986C23.024 14.9804 23.1162 13.8432 22.8422 12.7667C22.5682 11.6901 21.9435 10.7355 21.0667 10.0534C20.1899 9.37138 19.1109 9.00073 18 9H16.74C16.4373 7.82924 15.8732 6.74233 15.09 5.82099C14.3067 4.89965 13.3249 4.16785 12.2203 3.68061C11.1158 3.19336 9.91941 2.96336 8.72999 3.00787C7.54058 3.05239 6.3661 3.3703 5.30077 3.93747C4.23545 4.50465 3.30281 5.30565 2.57173 6.28360C1.84066 7.26156 1.32661 8.39025 1.06311 9.5879C0.799616 10.7855 0.794085 12.0203 1.04689 13.2208C1.29969 14.4214 1.80519 15.5564 2.53 16.54" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p>Drag and drop or click to upload</p>
+                            <p class="helper-text">Upload bank statements, financial statements, loan agreements, or other documentation to verify source of funds</p>
+                            <input type="file" id="funds-documentation" name="funds-documentation" style="display: none;" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>High-Risk Indicators</label>
+                        <div class="helper-text">Please indicate if any of the following apply to your business</div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-high-value" name="risk-indicators" value="high-value">
+                                <label for="risk-high-value">High-value goods dealer (art, jewelry, luxury goods)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-msp" name="risk-indicators" value="msp">
+                                <label for="risk-msp">Money Service Business or Payment Processor</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-crypto" name="risk-indicators" value="crypto">
+                                <label for="risk-crypto">Cryptocurrency or Virtual Asset Service Provider</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-gambling" name="risk-indicators" value="gambling">
+                                <label for="risk-gambling">Gambling or Gaming Business</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-cash" name="risk-indicators" value="cash">
+                                <label for="risk-cash">Primarily cash-based business</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-offshore" name="risk-indicators" value="offshore">
+                                <label for="risk-offshore">Significant offshore operations or complex structure</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-pep" name="risk-indicators" value="pep">
+                                <label for="risk-pep">Business owned or controlled by a Politically Exposed Person</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="risk-none" name="risk-indicators" value="none">
+                                <label for="risk-none">None of the above</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 6: Declarations and Consent -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 12L11 14L15 10" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Declarations and Consent
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declaration-accurate" name="declaration-accurate" required>
+                            <label for="declaration-accurate">I declare that the information provided in this form is accurate, complete, and up-to-date. <span class="required">*</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declaration-changes" name="declaration-changes" required>
+                            <label for="declaration-changes">I agree to promptly notify you of any changes to the information provided in this form. <span class="required">*</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declaration-documents" name="declaration-documents" required>
+                            <label for="declaration-documents">I understand that additional documents may be requested to complete the KYC/AML process. <span class="required">*</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declaration-verification" name="declaration-verification" required>
+                            <label for="declaration-verification">I consent to the verification of the information provided, including checks against sanctions lists, PEP databases, and other compliance databases. <span class="required">*</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declaration-processing" name="declaration-processing" required>
+                            <label for="declaration-processing">I consent to the processing of the personal data provided in accordance with applicable data protection laws. <span class="required">*</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declaration-monitoring" name="declaration-monitoring" required>
+                            <label for="declaration-monitoring">I understand that ongoing transaction monitoring will be conducted as part of regulatory requirements. <span class="required">*</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="signatory-name">Full Name of Authorized Signatory <span class="required">*</span></label>
+                                <input type="text" id="signatory-name" name="signatory-name" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="signatory-title">Title/Position <span class="required">*</span></label>
+                                <input type="text" id="signatory-title" name="signatory-title" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signature-date">Date <span class="required">*</span></label>
+                        <input type="date" id="signature-date" name="signature-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="electronic-signature">Electronic Signature <span class="required">*</span></label>
+                        <div class="file-upload" style="height: 150px; display: flex; justify-content: center; align-items: center;">
+                            <p>Sign here or upload signature image</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-footer">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1</div>
+                        <div class="progress-line completed"></div>
+                        <div class="progress-step completed">2</div>
+                        <div class="progress-line completed"></div>
+                        <div class="progress-step completed">3</div>
+                        <div class="progress-line completed"></div>
+                        <div class="progress-step completed">4</div>
+                        <div class="progress-line completed"></div>
+                        <div class="progress-step completed">5</div>
+                        <div class="progress-line completed"></div>
+                        <div class="progress-step active">6</div>
+                    </div>
+                    
+                    <div>
+                        <button type="button" class="btn-secondary">Save as Draft</button>
+                        <button type="submit" class="btn-primary">Submit Form</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Add client-side functionality for the form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make file upload divs clickable
+            const fileUploads = document.querySelectorAll('.file-upload');
+            fileUploads.forEach(upload => {
+                upload.addEventListener('click', function() {
+                    const input = this.querySelector('input[type="file"]');
+                    if (input) input.click();
+                });
+            });
+            
+            // Display file names when files are selected
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const fileNames = Array.from(this.files).map(file => file.name).join(', ');
+                    const fileUpload = this.closest('.file-upload');
+                    if (fileUpload && fileNames) {
+                        const p = fileUpload.querySelector('p:not(.helper-text)');
+                        if (p) p.textContent = fileNames;
+                    }
+                });
+            });
+            
+            // Toggle beneficial owner fields based on radio selection
+            const hasBeneficialOwnerRadios = document.querySelectorAll('input[name="has-beneficial-owner"]');
+            const beneficialOwnerFieldset = document.querySelector('fieldset:contains("Beneficial Owner")');
+            
+            hasBeneficialOwnerRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        beneficialOwnerFieldset.style.display = 'block';
+                    } else {
+                        beneficialOwnerFieldset.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Form submission (placeholder)
+            document.getElementById('kyc-aml-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Form submitted successfully! In a real implementation, this would be sent to the backend for processing.');
+            });
+        });
+    </script>
+</body>
+</html>

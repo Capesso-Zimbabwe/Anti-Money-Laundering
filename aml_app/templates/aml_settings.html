@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}AML Screening Configuration{% endblock %}
+
+{% block content %}
+  <style>
+    .form-control {
+      font-size: 12px;
+    }
+  </style>
+  <!-- Wrap content to enforce Inter font with 12px size -->
+  <div style="font-family: 'Inter', sans-serif; background: #eeeded; font-size: 12px;">
+    <div class="flex justify-center">
+      <div class="bg-white shadow-sm" style="width: 70%;">
+        <!-- Card Header -->
+        <div class="text-center border-b border-gray-200 px-4 p-4">
+          <h2 class="text-sm font-medium mb-0">Set AML Screening Parameters</h2>
+        </div>
+        <!-- Card Body -->
+        <div class="p-4">
+          <form id="amlForm">
+            {% csrf_token %}
+            <div class="flex mb-3">
+              <div class="w-full">
+                <label class="block mb-1 text-xs">Transaction Amount Threshold ($):</label>
+                <input type="number" name="transaction_threshold" value="{{ settings.transaction_threshold }}" style="width: 400px; border-radius: 8px;" required class="form-control block p-2 border border-gray-300 text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Cash Deposit Limit ($):</label>
+                <input type="number" name="cash_deposit_limit" value="{{ settings.cash_deposit_limit }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Structuring Limit (Below $):</label>
+                <input type="number" name="structuring_limit" value="{{ settings.structuring_limit }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Inactive Days (For Dormant Accounts):</label>
+                <input type="number" name="inactive_days" value="{{ settings.inactive_days }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Multiple Beneficiaries Limit:</label>
+                <input type="number" name="multiple_beneficiaries" value="{{ settings.multiple_beneficiaries }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Geo-Location Mismatch Limit:</label>
+                <input type="number" name="geo_location_mismatch" value="{{ settings.geo_location_mismatch }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">High-Risk Countries (Comma Separated):</label>
+                <textarea name="high_risk_countries" rows="2" style="width: 400px; border-radius: 8px;" class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">{{ settings.high_risk_countries }}</textarea>
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Days for Circular Transaction Flagging:</label>
+                <input type="number" name="circular_transaction_days" value="{{ settings.circular_transaction_days }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Mismatched Behavior Multiplier:</label>
+                <input type="number" step="0.1" name="mismatched_behavior_multiplier" value="{{ settings.mismatched_behavior_multiplier }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Cash Deposit No Withdrawal Threshold ($):</label>
+                <input type="number" name="cash_deposit_no_withdrawal" value="{{ settings.cash_deposit_no_withdrawal }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Dormant Account Transfer Limit ($):</label>
+                <input type="number" name="dormant_account_transfer_limit" value="{{ settings.dormant_account_transfer_limit }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <label class="block mb-1 text-xs">Structuring Transaction Count Threshold:</label>
+                <input type="number" name="structuring_txn_count" value="{{ settings.structuring_txn_count }}" style="width: 400px; border-radius: 8px;" required class="form-control block w-full p-2 border border-gray-300 rounded-md text-xs">
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12 flex items-center">
+                <input type="checkbox" name="employee_risk_flag" id="employeeRisk" class="form-check-input h-4 w-4" {% if settings.employee_risk_flag %}checked{% endif %}>
+                <label class="form-check-label ml-2 text-xs" for="employeeRisk">Flag Transactions Involving Employees</label>
+              </div>
+            </div>
+            <div class="flex mb-3">
+              <div class="w-5/12">
+                <button type="submit" class="w-full bg-blue-300 text-blsck py-2 px-4 rounded-lg font-semibold shadow-md hover:bg-gray-400 hover:scale-105 transition-all duration-300 text-xs">
+                  Save AML Parameters
+                </button>
+              </div>
+            </div>
+          </form>
+          <p id="responseMessage" class="text-success w-1/2 bg-green-500 text-center mt-3 text-xs"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("amlForm").onsubmit = function (event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        fetch("", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("responseMessage").innerText = data.message;
+        })
+        .catch(error => console.error("Error:", error));
+      };
+    </script>
+  </div>
+{% endblock %}

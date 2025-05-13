@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto p-0">
+        <!-- Header Section -->
+        <div class="bg-gradient-to-r from-blue-700 to-blue-600 rounded-t-lg shadow-lg">
+            <div class="px-6 py-4 text-center">
+                <h1 class="text-2xl font-bold text-white tracking-wide">SUSPICIOUS TRANSACTION REPORT</h1>
+            </div>
+        </div>
+
+        <!-- Main Content Container -->
+        <div class="bg-white rounded-b-lg shadow-lg mb-6 border border-gray-200">
+            <!-- Report ID Section -->
+            <div class="border-b border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                    <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                        Reporting Date
+                    </div>
+                    <div class="p-4 col-span-3 text-gray-800">
+                        {{ report.reporting_date }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PART A -->
+            <div class="border-b border-gray-200">
+                <div class="bg-blue-600 text-white px-4 py-2">
+                    <h2 class="font-bold">PART A - INFORMATION ABOUT WHERE THE TRANSACTION TOOK PLACE</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                    <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                        Reporting Entity's Branch or Division
+                    </div>
+                    <div class="p-4 col-span-3 text-gray-800">
+                        {{ report.reporting_entity }}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                    <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                        Reporting Person and Contact Details
+                    </div>
+                    <div class="p-4 col-span-3 text-gray-800">
+                        {{ report.reporting_person }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PART B -->
+            <div class="border-b border-gray-200">
+                <div class="bg-blue-600 text-white px-4 py-2">
+                    <h2 class="font-bold">PART B - SUSPICIOUS ACTIVITY INFORMATION</h2>
+                </div>
+                
+                <!-- Individuals Section -->
+                <div class="border-b border-gray-200">
+                    <div class="bg-gray-200 px-4 py-2">
+                        <h3 class="font-semibold text-gray-700">Details of Person or Entity Being Reported</h3>
+                    </div>
+                    
+                    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+                        <h3 class="font-semibold text-gray-700">Individuals</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Surname
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.individual.surname }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Full name
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.individual.full_name }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Nationality
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.individual.nationality }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Account Numbers
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.individual.account_numbers }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Identity or registration number
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.individual.identity_number }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Companies Section -->
+                <div class="border-b border-gray-200">
+                    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+                        <h3 class="font-semibold text-gray-700">Companies</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Name
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.name }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Registration Number
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.registration_number }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Names of Directors
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.directors }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Directors' Contact Details
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.directors_contact }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Physical Address of Directors
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.directors_address }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Company Account Number
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.company_account }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Directors' Account Numbers
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.directors_accounts }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Occupation or Type of Business
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.business_type }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Address
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.company.address }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Transaction Date and Amount -->
+                <div class="border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Date of Suspicious Activity
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.suspicious_date }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Total Dollar Amount Involved
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.amount }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Transaction Types -->
+                <div class="border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200 text-center">
+                            Type of funds/institution involved in initiating transaction
+                        </div>
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 text-center">
+                            Comment (if applicable)
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        <div class="p-4 border-r border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'accountant' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Accountant</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'bank_cash' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Bank Cash</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'bank_cheques' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Bank Cheques</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'electronic_funds_transfer' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Electronic Funds Transfer</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'casino' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Casino</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'life_insurance_broker' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Life Insurance Broker or Agent</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'life_insurance_company' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Life Insurance Company</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'money_transfer' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Money Transfer Business</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'real_estate' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Real Estate Broker</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'securities_dealer' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Securities Dealer</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'foreign_exchange' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Foreign Exchange</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'travelers_cheques' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Traveler's Cheques</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'trust_account' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Trust Account</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'lawyer' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Lawyer</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <input class="form-checkbox h-4 w-4 text-blue-600" type="checkbox" {% if 'other' in report.transaction_types %}checked{% endif %} disabled>
+                                    <span class="ml-2 text-gray-700">Other (specify)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 text-gray-800">
+                            {{ report.transaction_comment }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Information About Entity/Person -->
+                <div>
+                    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+                        <h3 class="font-semibold text-gray-700">Information about entity/person on whose behalf the transaction was conducted</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Name
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.behalf_entity.name }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Directors' Names
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.behalf_entity.directors }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Type of Business
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.behalf_entity.business_type }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Account number
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.behalf_entity.account_number }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                            Address
+                        </div>
+                        <div class="p-4 col-span-3 text-gray-800">
+                            {{ report.behalf_entity.address }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PART C -->
+            <div class="border-b border-gray-200">
+                <div class="bg-blue-600 text-white px-4 py-2">
+                    <h2 class="font-bold">PART C - DESCRIPTION OF SUSPICIOUS ACTIVITY/TRANSACTION</h2>
+                </div>
+                
+                <div class="p-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                        <p class="font-semibold">Please describe clearly and completely the unusual circumstances that led to the suspicion of money laundering</p>
+                        <p class="text-sm text-gray-600 italic">Attach Bank Statements of all Accounts listed and account opening mandates</p>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32">
+                        <p class="whitespace-pre-line text-gray-800">{{ report.suspicious_description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PART D -->
+            <div>
+                <div class="bg-blue-600 text-white px-4 py-2">
+                    <h2 class="font-bold">PART D - DESCRIPTION OF ACTION TAKEN (Where applicable)</h2>
+                </div>
+                
+                <div class="p-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                        <p class="font-semibold">Please describe what action if any, was or will be taken by you as a result of the transaction</p>
+                        <p class="text-sm text-gray-600 italic">If any law enforcement or regulatory authority has been contacted, give details</p>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32">
+                        <p class="whitespace-pre-line text-gray-800">{{ report.action_description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center text-gray-500 text-sm mt-6">
+            <p>CONFIDENTIAL - For official use only</p>
+        </div>
+    </div>
+    {% endblock %}

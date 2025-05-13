@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}View Document{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb navigation -->
+    <nav class="flex mb-5" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'dashboard' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                    Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                    <a href="{% url 'kyc_app:browse_documents' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Document Browser</a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">View Document</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="flex justify-between mb-6 items-center">
+        <h1 class="text-3xl font-bold">Document View</h1>
+        {% if customer %}
+            {% if customer.full_name %}
+            <a href="{% url 'kyc_app:customer_documents' customer_id=customer.customer_id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Customer
+            </a>
+            {% elif customer.business_name %}
+            <a href="{% url 'kyc_app:business_documents' business_id=customer.business_id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Business
+            </a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'kyc_app:browse_documents' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Documents
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Document View Content -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header with document info and status badges -->
+        <div class="bg-gray-800 text-white p-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-bold">Document: {{ document.get_document_type_display }}</h1>
+                <div class="flex space-x-2">
+                    <!-- Status Badge -->
+                    {% if document.status == 'PENDING' %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        Pending
+                    </span>
+                    {% elif document.status == 'VERIFIED' %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Verified
+                    </span>
+                    {% elif document.status == 'REJECTED' %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        Rejected
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Expiry Badge -->
+                    {% if document.is_expired %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        Expired
+                    </span>
+                    {% elif document.days_until_expiry and document.days_until_expiry < 30 %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        Expires in {{ document.days_until_expiry }} days
+                    </span>
+                    {% elif document.days_until_expiry %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        Valid
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mt-2 flex items-center text-sm">
+                <span class="font-semibold mr-2">Customer:</span>
+                {% if customer %}
+                    {% if customer.full_name %}
+                        <span>{{ customer.full_name }} ({{ customer.customer_id }})</span>
+                    {% elif customer.business_name %}
+                        <span>{{ customer.business_name }} ({{ customer.business_id }})</span>
+                    {% else %}
+                        <span>{{ document.profile.full_name|default:"Unknown" }}</span>
+                    {% endif %}
+                {% else %}
+                    <span>{{ document.profile.full_name|default:"Unknown" }}</span>
+                {% endif %}
+            </div>
+            <div class="mt-1 flex items-center text-sm">
+                <span class="font-semibold mr-2">Upload Date:</span>
+                <span>{{ document.upload_date|date:"F j, Y, g:i a" }}</span>
+            </div>
+            {% if document.verification_date %}
+            <div class="mt-1 flex items-center text-sm">
+                <span class="font-semibold mr-2">Verification Date:</span>
+                <span>{{ document.verification_date|date:"F j, Y, g:i a" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Customer Information Section -->
+        {% if customer %}
+        <div class="bg-blue-50 border-b border-blue-100 p-4">
+            <h2 class="text-lg font-semibold mb-3 text-blue-800">Customer Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% if customer.full_name %}
+                <!-- Individual Customer -->
+                <div>
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Full Name:</span>
+                        <span class="ml-2">{{ customer.full_name }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Customer ID:</span>
+                        <span class="ml-2">{{ customer.customer_id }}</span>
+                    </div>
+                    {% if customer.date_of_birth %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Date of Birth:</span>
+                        <span class="ml-2">{{ customer.date_of_birth }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if customer.email %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Email:</span>
+                        <span class="ml-2">{{ customer.email }}</span>
+                    </div>
+                    {% endif %}
+                    {% if customer.phone_number %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Phone:</span>
+                        <span class="ml-2">{{ customer.phone_number }}</span>
+                    </div>
+                    {% endif %}
+                    {% if customer.nationality %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Nationality:</span>
+                        <span class="ml-2">{{ customer.nationality }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% elif customer.business_name %}
+                <!-- Business Customer -->
+                <div>
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Business Name:</span>
+                        <span class="ml-2">{{ customer.business_name }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Business ID:</span>
+                        <span class="ml-2">{{ customer.business_id }}</span>
+                    </div>
+                    {% if customer.registration_number %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Registration Number:</span>
+                        <span class="ml-2">{{ customer.registration_number }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if customer.business_email %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Email:</span>
+                        <span class="ml-2">{{ customer.business_email }}</span>
+                    </div>
+                    {% endif %}
+                    {% if customer.business_phone %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Phone:</span>
+                        <span class="ml-2">{{ customer.business_phone }}</span>
+                    </div>
+                    {% endif %}
+                    {% if customer.country_of_registration %}
+                    <div class="mb-2">
+                        <span class="font-medium text-gray-700">Country:</span>
+                        <span class="ml-2">{{ customer.country_of_registration }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% if customer.full_name and customer.workflow_state %}
+            <div class="mt-3 flex items-center">
+                <span class="font-medium text-gray-700 mr-2">KYC Status:</span>
+                <span class="px-2 py-1 text-xs rounded-full 
+                    {% if customer.workflow_state.current_state == 'APPROVED' %}bg-green-100 text-green-800
+                    {% elif customer.workflow_state.current_state == 'REJECTED' %}bg-red-100 text-red-800
+                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {{ customer.workflow_state.current_state }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="p-4 flex flex-col md:flex-row md:space-x-6">
+            <!-- Document Display Section -->
+            <div class="w-full md:w-1/2">
+                <h2 class="text-lg font-semibold mb-3">Document Preview</h2>
+                <div class="border border-gray-300 rounded-lg overflow-hidden bg-gray-100 p-4 text-center">
+                    {% if document.document_file %}
+                        {% if document.document_file.url|slice:"-4:" == ".pdf" %}
+                            <div class="p-4 flex flex-col items-center justify-center">
+                                <svg class="w-16 h-16 text-red-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <text x="8.5" y="17" font-family="sans-serif" font-size="6" font-weight="bold" fill="white">PDF</text>
+                                </svg>
+                                <p class="mt-2 text-gray-700">PDF Document</p>
+                                <a href="{{ document.document_file.url }}" target="_blank" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+                                    Open PDF
+                                </a>
+                            </div>
+                        {% else %}
+                            <img src="{{ document.document_file.url }}" alt="Document Preview" class="max-w-full max-h-96 mx-auto">
+                        {% endif %}
+                    {% else %}
+                        <div class="p-4 flex flex-col items-center justify-center">
+                            <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-gray-500 mt-2">No document file available.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Document Details Section with badges -->
+                <div class="mt-4 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Document Details</h3>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="font-medium">Document Type:</div>
+                        <div>{{ document.get_document_type_display }}</div>
+                        
+                        {% if document.document_number %}
+                        <div class="font-medium">Document Number:</div>
+                        <div>{{ document.document_number }}</div>
+                        {% endif %}
+                        
+                        {% if document.issue_date %}
+                        <div class="font-medium">Issue Date:</div>
+                        <div>{{ document.issue_date|date:"F j, Y" }}</div>
+                        {% endif %}
+                        
+                        {% if document.expiry_date %}
+                        <div class="font-medium">Expiry Date:</div>
+                        <div>
+                            {{ document.expiry_date|date:"F j, Y" }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.issuing_authority %}
+                        <div class="font-medium">Issuing Authority:</div>
+                        <div>{{ document.issuing_authority }}</div>
+                        {% endif %}
+                        
+                        {% if document.issuing_country %}
+                        <div class="font-medium">Issuing Country:</div>
+                        <div>{{ document.issuing_country }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- File Information -->
+                <div class="mt-4 text-sm text-gray-600">
+                    <p>File path: {{ document.document_path }}</p>
+                    <p>File name: {{ document.document_file.name|default:"Not available" }}</p>
+                </div>
+            </div>
+            
+            <!-- Verification Status Section -->
+            <div class="w-full md:w-1/2 mt-6 md:mt-0">
+                <h2 class="text-lg font-semibold mb-3">Verification Status</h2>
+                
+                <!-- Display verification status details -->
+                <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <div class="mb-4">
+                        <h3 class="font-semibold text-gray-800">Status: 
+                            {% if document.status == 'PENDING' %}
+                            <span class="text-yellow-600">Pending Verification</span>
+                            {% elif document.status == 'VERIFIED' %}
+                            <span class="text-green-600">Verified</span>
+                            {% elif document.status == 'REJECTED' %}
+                            <span class="text-red-600">Rejected</span>
+                            {% endif %}
+                        </h3>
+                        
+                        {% if document.verified_by %}
+                        <p class="text-sm text-gray-600 mt-2">Processed by: {{ document.verified_by }}</p>
+                        <p class="text-sm text-gray-600">Date: {{ document.verification_date|date:"F j, Y, g:i a" }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if document.verification_notes %}
+                    <div class="mb-4">
+                        <h4 class="font-medium text-gray-700">Verification Notes:</h4>
+                        <p class="text-sm p-2 bg-white border border-gray-200 rounded mt-1">{{ document.verification_notes }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if document.rejection_reason %}
+                    <div class="mb-4">
+                        <h4 class="font-medium text-red-700">Rejection Reason:</h4>
+                        <p class="text-sm p-2 bg-white border border-red-200 rounded mt-1">{{ document.rejection_reason }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Verification Timeline with badges -->
+                    <div class="mt-6">
+                        <h4 class="font-medium text-gray-700 mb-3">Document Timeline</h4>
+                        <div class="border-l-2 border-gray-200 pl-4 space-y-4">
+                            <div class="relative">
+                                <div class="absolute -left-6 mt-1 w-4 h-4 rounded-full bg-blue-500"></div>
+                                <p class="text-sm font-medium">Uploaded</p>
+                                <p class="text-xs text-gray-500">{{ document.upload_date|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                            
+                            {% if document.verification_date %}
+                            <div class="relative">
+                                <div class="absolute -left-6 mt-1 w-4 h-4 rounded-full {% if document.status == 'VERIFIED' %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+                                <p class="text-sm font-medium">
+                                    {% if document.status == 'VERIFIED' %}Verified{% else %}Rejected{% endif %}
+                                </p>
+                                <p class="text-xs text-gray-500">{{ document.verification_date|date:"F j, Y, g:i a" }}</p>
+                                {% if document.verified_by %}
+                                <p class="text-xs text-gray-500">By: {{ document.verified_by }}</p>
+                                {% endif %}
+                            </div>
+                            {% elif document.status == 'PENDING' %}
+                            <div class="relative">
+                                <div class="absolute -left-6 mt-1 w-4 h-4 rounded-full bg-yellow-500"></div>
+                                <p class="text-sm font-medium">Awaiting Verification</p>
+                                <p class="text-xs text-gray-500">Pending review</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if document.expiry_date %}
+                            <div class="relative">
+                                <div class="absolute -left-6 mt-1 w-4 h-4 rounded-full {% if document.is_expired %}bg-red-500{% elif document.days_until_expiry < 30 %}bg-yellow-500{% else %}bg-gray-300{% endif %}"></div>
+                                <p class="text-sm font-medium">
+                                    {% if document.is_expired %}
+                                    Expired
+                                    {% else %}
+                                    Expiry Date
+                                    {% endif %}
+                                </p>
+                                <p class="text-xs text-gray-500">{{ document.expiry_date|date:"F j, Y" }}</p>
+                                {% if not document.is_expired and document.days_until_expiry %}
+                                <p class="text-xs {% if document.days_until_expiry < 30 %}text-yellow-600{% else %}text-gray-500{% endif %}">
+                                    {{ document.days_until_expiry }} days remaining
+                                </p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex space-x-3">
+                        <a href="{% url 'kyc_app:browse_documents' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+                            Back to Browser
+                        </a>
+                        
+                        {% if customer %}
+                            {% if customer.full_name %}
+                            <a href="{% url 'kyc_app:customer_documents' customer_id=customer.customer_id %}" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded">
+                                Back to Customer Documents
+                            </a>
+                            {% elif customer.business_name %}
+                            <a href="{% url 'kyc_app:business_documents' business_id=customer.business_id %}" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded">
+                                Back to Business Documents
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if request.user.is_staff and document.status == 'PENDING' %}
+                        <a href="{% url 'kyc_app:verify_document' document.id %}" class="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded">
+                            Verify Now
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

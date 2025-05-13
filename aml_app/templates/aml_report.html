@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto p-6 bg-white shadow-md rounded-xl">
+
+    <!-- Filter Form -->
+<div class="bg-white p-6 rounded-xl shadow-md mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Filter Transactions</h2>
+    <form method="GET" action="">
+        <div class="flex flex-wrap items-end space-x-4">
+            <!-- Risk Level -->
+            <div class="flex flex-col">
+                <label for="risk_level" class="text-sm font-medium text-gray-700">Risk Level</label>
+                <select name="risk_level" id="risk_level" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <option value="">All</option>
+                    <option value="High" {% if request.GET.risk_level == "High" %}selected{% endif %}>High</option>
+                    <option value="Medium" {% if request.GET.risk_level == "Medium" %}selected{% endif %}>Medium</option>
+                    <option value="Low" {% if request.GET.risk_level == "Low" %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+
+            <!-- Start Date -->
+            <div class="flex flex-col">
+                <label for="start_date" class="text-sm font-medium text-gray-700">Start Date</label>
+                <input type="date" name="start_date" id="start_date" value="{{ request.GET.start_date }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </div>
+
+            <!-- End Date -->
+            <div class="flex flex-col">
+                <label for="end_date" class="text-sm font-medium text-gray-700">End Date</label>
+                <input type="date" name="end_date" id="end_date" value="{{ request.GET.end_date }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </div>
+
+            <!-- Apply Filters Button -->
+            <div class="flex-shrink-0">
+                <button type="submit" class="bg-gray-700 text-white py-2 px-6 rounded-lg shadow hover:bg-blue-700 transition duration-300 text-sm">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+    <!-- Report Header -->
+    <div class="mb-6">
+        <h1 class="text-xl font-bold text-gray-700 mb-4">AML Suspicious Transaction Report (Last 30 Days)</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <!-- Summary Cards -->
+            <div class="bg-blue-100 p-4 rounded-lg shadow">
+                <p class="text-lg font-semibold">Total Suspicious Transactions</p>
+                <p class="text-lg font-bold text-gray-800">{{ total_suspicious }}</p>
+            </div>
+            <div class="bg-blue-100 p-4 rounded-lg shadow">
+                <p class="text-lg font-semibold">Total Amount</p>
+                <p class="text-lg font-bold text-gray-800">{{ total_amount }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breakdown by Risk Level -->
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-700 mb-3">Breakdown by Risk Level</h2>
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full text-left border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700">
+                        <th class="px-4 py-2 border">Risk Level</th>
+                        <th class="px-4 py-2 border">Count</th>
+                        <th class="px-4 py-2 border">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in risk_breakdown %}
+                    <tr class="hover:bg-gray-100">
+                        <td class="px-4 py-2 border">{{ item.risk_level }}</td>
+                        <td class="px-4 py-2 border">{{ item.count }}</td>
+                        <td class="px-4 py-2 border">{{ item.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Suspicious Transactions Details -->
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-700 mb-3">Suspicious Transactions Details</h2>
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full text-left border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700">
+                        <th class="px-4 py-2 border">Transaction ID</th>
+                        <th class="px-4 py-2 border">Risk Level</th>
+                        <th class="px-4 py-2 border">Flagged Reason</th>
+                        <th class="px-4 py-2 border">Customer Name</th>
+                        <th class="px-4 py-2 border">Account Number</th>
+                        <th class="px-4 py-2 border">Sender Account</th>
+                        <th class="px-4 py-2 border">Receiver Account</th>
+                        <th class="px-4 py-2 border">Amount</th>
+                        <th class="px-4 py-2 border">Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stxn in suspicious_qs %}
+                    <tr class="hover:bg-gray-100">
+                        <td class="px-4 py-2 border">{{ stxn.transaction.transaction_id }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.risk_level }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.flagged_reason }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.customer_name }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.account_number }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.sender_account }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.receiver_account }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.amount }}</td>
+                        <td class="px-4 py-2 border">{{ stxn.created_at }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="px-4 py-2 border text-center text-gray-500">No suspicious transactions found in the selected range.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Download PDF Report -->
+    <div class="mt-6 text-right">
+        <a href="{% url 'aml_report_pdf' %}" target="_blank" class="bg-gray-600 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-300">Download PDF Report</a>
+    </div>
+</div>
+{% endblock %}

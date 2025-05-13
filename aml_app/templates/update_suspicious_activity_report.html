@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Update Suspicious Activity Report{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Update Suspicious Activity Report</h1>
+        <a href="{% url 'suspicious_activity_report_view' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Cancel
+        </a>
+    </div>
+    
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Report Information -->
+            <div>
+                <h2 class="text-lg font-semibold mb-4">Report Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="report_id" class="block text-sm font-medium text-gray-700">Report ID</label>
+                        <input type="text" id="report_id" name="report_id" value="{{ report.report_id }}" readonly class="mt-1 block w-full bg-gray-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="report_reference_number" class="block text-sm font-medium text-gray-700">Reference Number</label>
+                        <input type="text" id="report_reference_number" name="report_reference_number" value="{{ report.report_reference_number }}" readonly class="mt-1 block w-full bg-gray-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status and Risk Level -->
+            <div>
+                <h2 class="text-lg font-semibold mb-4">Status and Risk Assessment</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="report_status" class="block text-sm font-medium text-gray-700">Report Status</label>
+                        <select id="report_status" name="report_status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            {% for value, label in report_status_choices %}
+                            <option value="{{ value }}" {% if report.report_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="risk_level" class="block text-sm font-medium text-gray-700">Risk Level</label>
+                        <select id="risk_level" name="risk_level" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            {% for value, label in risk_level_choices %}
+                            <option value="{{ value }}" {% if report.risk_level == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Suspicious Activity Information -->
+            <div>
+                <h2 class="text-lg font-semibold mb-4">Suspicious Activity Information</h2>
+                <div>
+                    <label for="suspicious_activity_description" class="block text-sm font-medium text-gray-700">Suspicious Activity Description</label>
+                    <textarea id="suspicious_activity_description" name="suspicious_activity_description" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ report.suspicious_activity_description }}</textarea>
+                    <p class="mt-1 text-sm text-gray-500">Provide a detailed description of the suspicious activity.</p>
+                </div>
+            </div>
+            
+            <!-- Internal Actions -->
+            <div>
+                <h2 class="text-lg font-semibold mb-4">Internal Actions</h2>
+                <div>
+                    <label for="internal_actions_taken" class="block text-sm font-medium text-gray-700">Actions Taken</label>
+                    <textarea id="internal_actions_taken" name="internal_actions_taken" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ report.internal_actions_taken }}</textarea>
+                    <p class="mt-1 text-sm text-gray-500">Describe actions taken by the financial institution.</p>
+                </div>
+                
+                <!-- Account and Relationship Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="account_action" class="block text-sm font-medium text-gray-700">Account Action</label>
+                        <select id="account_action" name="account_action" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="" {% if not report.account_action %}selected{% endif %}>-- Select Action --</option>
+                            <option value="No Action" {% if report.account_action == "No Action" %}selected{% endif %}>No Action</option>
+                            <option value="Transaction Frozen" {% if report.account_action == "Transaction Frozen" %}selected{% endif %}>Transaction Frozen</option>
+                            <option value="Account Frozen" {% if report.account_action == "Account Frozen" %}selected{% endif %}>Account Frozen</option>
+                            <option value="Account Closed" {% if report.account_action == "Account Closed" %}selected{% endif %}>Account Closed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="relationship_action" class="block text-sm font-medium text-gray-700">Relationship Action</label>
+                        <select id="relationship_action" name="relationship_action" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="" {% if not report.relationship_action %}selected{% endif %}>-- Select Action --</option>
+                            <option value="No Action" {% if report.relationship_action == "No Action" %}selected{% endif %}>No Action</option>
+                            <option value="Enhanced Monitoring" {% if report.relationship_action == "Enhanced Monitoring" %}selected{% endif %}>Enhanced Monitoring</option>
+                            <option value="Relationship Restricted" {% if report.relationship_action == "Relationship Restricted" %}selected{% endif %}>Relationship Restricted</option>
+                            <option value="Relationship Terminated" {% if report.relationship_action == "Relationship Terminated" %}selected{% endif %}>Relationship Terminated</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Law Enforcement Information (if status is SUBMITTED) -->
+            <div id="law_enforcement_section" class="{% if report.report_status != 'SUBMITTED' %}hidden{% endif %}">
+                <h2 class="text-lg font-semibold mb-4">Law Enforcement Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="law_enforcement_agency" class="block text-sm font-medium text-gray-700">Law Enforcement Agency</label>
+                        <input type="text" id="law_enforcement_agency" name="law_enforcement_agency" value="{{ report.law_enforcement_agency|default:'' }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="law_enforcement_contact" class="block text-sm font-medium text-gray-700">Contact Person</label>
+                        <input type="text" id="law_enforcement_contact" name="law_enforcement_contact" value="{{ report.law_enforcement_contact|default:'' }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="case_reference_number" class="block text-sm font-medium text-gray-700">Case Reference Number</label>
+                        <input type="text" id="case_reference_number" name="case_reference_number" value="{{ report.case_reference_number|default:'' }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="pt-5 border-t border-gray-200">
+                <div class="flex justify-end">
+                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Update Report
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Show/hide law enforcement section based on report status
+    document.getElementById('report_status').addEventListener('change', function() {
+        const lawEnforcementSection = document.getElementById('law_enforcement_section');
+        if (this.value === 'SUBMITTED') {
+            lawEnforcementSection.classList.remove('hidden');
+        } else {
+            lawEnforcementSection.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %} 

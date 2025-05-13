@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate KYC Reports{% endblock %}
+
+{% block content %}
+<div class="py-6 px-4 sm:px-6 lg:px-8 bg-gray-100 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <nav class="flex mb-4" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 inline-flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                            </svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-500 ml-1 md:ml-2 text-sm font-medium">Generate Reports</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="text-2xl font-semibold text-gray-900">Generate KYC Reports</h1>
+            <p class="mt-1 text-sm text-gray-600">Generate reports for approved or rejected KYC profiles.</p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 mb-4 rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Tabs for Individual and Business Profiles -->
+        <div class="mb-6">
+            <div class="sm:hidden">
+                <label for="tabs" class="sr-only">Select a tab</label>
+                <select id="tabs" name="tabs" class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    <option value="individual" selected>Individual Profiles</option>
+                    <option value="business">Business Profiles</option>
+                </select>
+            </div>
+            <div class="hidden sm:block">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex" aria-label="Tabs">
+                        <a href="#" id="tab-individual" class="tab-link w-1/2 border-b-2 border-blue-500 py-4 px-1 text-center text-sm font-medium text-blue-600" aria-current="page">Individual Profiles</a>
+                        <a href="#" id="tab-business" class="tab-link w-1/2 border-b-2 border-transparent py-4 px-1 text-center text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">Business Profiles</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Profiles Tab Content -->
+        <div id="tab-content-individual" class="tab-content">
+            <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Individual Profiles Ready for Reports</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-green-50 rounded-lg p-4 text-center">
+                            <span class="text-2xl font-bold text-green-700">{{ approved_individuals|default:"0" }}</span>
+                            <p class="text-sm text-green-600">Approved Profiles</p>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-4 text-center">
+                            <span class="text-2xl font-bold text-red-700">{{ rejected_individuals|default:"0" }}</span>
+                            <p class="text-sm text-red-600">Rejected Profiles</p>
+                        </div>
+                    </div>
+                    
+                    {% if individuals %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for profile in individuals %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ profile.customer_id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ profile.full_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <span class="px-2 py-1 text-xs rounded-full {% if profile.workflow_state.current_state == 'APPROVED' %}bg-green-100 text-green-800{% elif profile.workflow_state.current_state == 'REJECTED' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ profile.workflow_state.current_state }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {% if profile.risk_level %}
+                                        <span class="px-2 py-1 text-xs rounded-full {% if profile.risk_level == 'High' %}bg-red-100 text-red-800{% elif profile.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                            {{ profile.risk_level }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-gray-400">Not available</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <a href="{% url 'kyc_app:generate_kyc_report' profile.id 'individual' %}" class="text-blue-600 hover:text-blue-900 generate-report-btn" data-profile-id="{{ profile.id }}" data-type="individual">
+                                            Generate Report
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        No individual profiles ready for reports. Profiles must be approved or rejected first.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No profiles ready for reports</h3>
+                        <p class="mt-1 text-sm text-gray-500">Individual profiles must be approved or rejected before generating reports.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Profiles Tab Content -->
+        <div id="tab-content-business" class="tab-content hidden">
+            <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Business Profiles Ready for Reports</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-green-50 rounded-lg p-4 text-center">
+                            <span class="text-2xl font-bold text-green-700">{{ approved_businesses|default:"0" }}</span>
+                            <p class="text-sm text-green-600">Approved Businesses</p>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-4 text-center">
+                            <span class="text-2xl font-bold text-red-700">{{ rejected_businesses|default:"0" }}</span>
+                            <p class="text-sm text-red-600">Rejected Businesses</p>
+                        </div>
+                    </div>
+                    
+                    {% if businesses %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for business in businesses %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ business.business_id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ business.business_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <span class="px-2 py-1 text-xs rounded-full {% if business.workflow_state.current_state == 'APPROVED' %}bg-green-100 text-green-800{% elif business.workflow_state.current_state == 'REJECTED' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ business.workflow_state.current_state }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {% if business.risk_level %}
+                                        <span class="px-2 py-1 text-xs rounded-full {% if business.risk_level == 'High' %}bg-red-100 text-red-800{% elif business.risk_level == 'Medium' %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                            {{ business.risk_level }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-gray-400">Not available</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <a href="{% url 'kyc_app:generate_kyc_report' business.id 'business' %}" class="text-blue-600 hover:text-blue-900 generate-report-btn" data-profile-id="{{ business.id }}" data-type="business">
+                                            Generate Report
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        No business profiles ready for reports. Profiles must be approved or rejected first.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No business profiles ready for reports</h3>
+                        <p class="mt-1 text-sm text-gray-500">Business profiles must be approved or rejected before generating reports.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Generate Reports Section -->
+        <div class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Batch Generate Reports</h2>
+                <p class="text-sm text-gray-600 mb-4">Generate reports for multiple profiles at once. Only approved or rejected profiles will be processed.</p>
+                
+                <form method="POST" action="{% url 'kyc_app:batch_generate_reports' %}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="profile_type" class="block text-sm font-medium text-gray-700">Profile Type</label>
+                        <select id="profile_type" name="profile_type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="individual">Individual Profiles</option>
+                            <option value="business">Business Profiles</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="all">All Completed</option>
+                            <option value="APPROVED">Approved Only</option>
+                            <option value="REJECTED">Rejected Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Generate Batch Reports
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Generated Reports Section -->
+        <div class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Recently Generated Reports</h3>
+                <a href="{% url 'kyc_app:kyc_reports_list' %}" class="text-blue-600 hover:text-blue-900 text-sm">View All Reports</a>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Generated</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for report in recent_reports %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ report.report_id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ report.get_report_type_display }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {% if report.kyc_profile %}
+                                        {{ report.kyc_profile.full_name }}
+                                    {% elif report.business_kyc %}
+                                        {{ report.business_kyc.business_name }}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ report.generated_at|date:"M d, Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span class="px-2 py-1 text-xs rounded-full {% if report.decision == 'APPROVED' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ report.decision }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'kyc_app:view_kyc_report' report.report_id %}" class="text-blue-600 hover:text-blue-900">
+                                            View
+                                        </a>
+                                        <a href="{% url 'kyc_app:download_kyc_report' report.report_id %}" class="text-green-600 hover:text-green-900">
+                                            Download
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    No reports have been generated yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabLinks.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active state from all tabs
+                tabLinks.forEach(t => {
+                    t.classList.remove('border-blue-500', 'text-blue-600');
+                    t.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                // Add active state to clicked tab
+                this.classList.remove('border-transparent', 'text-gray-500');
+                this.classList.add('border-blue-500', 'text-blue-600');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show content for active tab
+                const tabId = this.id;
+                const contentId = `tab-content-${tabId.split('-')[1]}`;
+                document.getElementById(contentId).classList.remove('hidden');
+            });
+        });
+        
+        // Mobile select handler
+        const tabSelect = document.getElementById('tabs');
+        if (tabSelect) {
+            tabSelect.addEventListener('change', function() {
+                const selectedTab = this.value;
+                document.getElementById(`tab-${selectedTab}`).click();
+            });
+        }
+        
+        // Report generation confirmation
+        const reportButtons = document.querySelectorAll('.generate-report-btn');
+        reportButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const profileId = this.getAttribute('data-profile-id');
+                const profileType = this.getAttribute('data-type');
+                
+                if (confirm('Are you sure you want to generate a report for this profile? This action cannot be undone.')) {
+                    window.location.href = this.getAttribute('href');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

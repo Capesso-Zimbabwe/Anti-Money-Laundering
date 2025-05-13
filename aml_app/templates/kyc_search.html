@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <h2 class="text-lg font-bold mb-4 text-gray-800">KYC Search & Check</h2>
+
+  <!-- Search & Filters -->
+  <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 items-end">
+    <input type="text" name="q" placeholder="Name, ID or Phone" value="{{ query }}"
+           class="rounded-lg p-2 border border-gray-300 text-xs col-span-2">
+
+    <select name="search_model" class="rounded-lg p-2 border border-gray-300 text-xs">
+      <option value="KYCProfile" {% if search_model == "KYCProfile" %}selected{% endif %}>KYC Profiles</option>
+      <option value="KYCTestResult" {% if search_model == "KYCTestResult" %}selected{% endif %}>KYC Test Results</option>
+    </select>
+
+    {% if search_model == "KYCTestResult" %}
+      <select name="kyc_status" class="rounded-lg p-2 border border-gray-300 text-xs">
+        <option value="">KYC Status</option>
+        <option value="Verified" {% if kyc_status == "Verified" %}selected{% endif %}>Verified</option>
+        <option value="Pending" {% if kyc_status == "Pending" %}selected{% endif %}>Pending</option>
+        <option value="Rejected" {% if kyc_status == "Rejected" %}selected{% endif %}>Rejected</option>
+      </select>
+
+      <select name="risk_level" class="rounded-lg p-2 border border-gray-300 text-xs">
+        <option value="">Risk Level</option>
+        <option value="High" {% if risk_level == "High" %}selected{% endif %}>High</option>
+        <option value="Medium" {% if risk_level == "Medium" %}selected{% endif %}>Medium</option>
+        <option value="Low" {% if risk_level == "Low" %}selected{% endif %}>Low</option>
+      </select>
+    {% endif %}
+
+    <button type="submit" class="bg-[#f68430] hover:bg-orange-300 text-white px-4 py-2 rounded-lg text-xs">Search</button>
+  </form>
+
+  <!-- Export CSV Button -->
+  <form method="GET">
+    <input type="hidden" name="q" value="{{ query }}">
+    <input type="hidden" name="search_model" value="{{ search_model }}">
+    {% if search_model == "KYCTestResult" %}
+      <input type="hidden" name="kyc_status" value="{{ kyc_status }}">
+      <input type="hidden" name="risk_level" value="{{ risk_level }}">
+    {% endif %}
+    <input type="hidden" name="export" value="1">
+    <button type="submit" class="text-gray-900 underline text-xs mb-2">Export CSV</button>
+  </form>
+
+  <!-- Results Table -->
+  <table class="min-w-full table-auto text-xs bg-white rounded-lg shadow">
+    <thead class="bg-gray-100 text-left">
+      <tr>
+        <th class="px-4 py-2">Customer ID</th>
+        <th class="px-4 py-2">Name</th>
+        <th class="px-4 py-2">Verification Notes</th>
+        {% if search_model == "KYCTestResult" %}
+          <th class="px-4 py-2">KYC Status</th>
+          <th class="px-4 py-2">Risk Level</th>
+        {% else %}
+          <th class="px-4 py-2">Action</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results %}
+        <tr class="border-t">
+          {% if search_model == "KYCTestResult" %}
+            <td class="px-4 py-2">{{ r.kyc_profile.customer_id }}</td>
+            <td class="px-4 py-2">{{ r.kyc_profile.full_name }}</td>
+            <td class="px-4 py-2">{{ r.verification_notes }}</td>
+            <td class="px-4 py-2">{{ r.kyc_status }}</td>
+            <td class="px-4 py-2">{{ r.risk_level }}</td>
+          {% else %}
+            <td class="px-4 py-2">{{ r.customer_id }}</td>
+            <td class="px-4 py-2">{{ r.full_name }}</td>
+            <td class="px-4 py-2">{{ r.phone_number }}</td>
+            <td class="px-4 py-2">
+              <button class="bg-[#f68430] hover:bg-orange-300 text-white px-3 py-1 rounded text-xs"
+                      onclick="runKYC('{{ r.customer_id }}')">Run</button>
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-4 text-gray-500">No results found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function runKYC(customerId) {
+  fetch(`/run-individual-kyc/${customerId}/`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}",
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.status + " for " + data.customer);
+    window.location.href = "?search_model=KYCTestResult&q=" + customerId;
+  })
+  .catch(error => alert("Error running KYC test."));
+}
+</script>
+{% endblock %}

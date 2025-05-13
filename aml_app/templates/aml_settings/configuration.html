@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+  <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">AML Configuration System</h1>
+    
+    {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="p-3 {% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-red-100 border-red-400 text-red-700{% endif %} border rounded">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="post" action="">
+      {% csrf_token %}
+      
+      <!-- Account Type Selector -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="account_type">Account Type</label>
+        <select id="account_type" name="account_type" class="form-select rounded border-gray-300 w-full md:w-64" onchange="this.form.submit()">
+          {% for value, name in account_type_choices.items %}
+            <option value="{{ value }}" {% if value == current_account_type %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <!-- 1. Global Transaction Thresholds -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">1. Global Transaction Thresholds</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="max_transaction_amount">Maximum Transaction Amount ($)</label>
+            <input type="number" id="max_transaction_amount" name="max_transaction_amount" class="form-input rounded border-gray-300 w-full" value="{{ aml_settings.max_transaction_amount }}">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="cash_deposit_limit">Cash Deposit Limit ($)</label>
+            <input type="number" id="cash_deposit_limit" name="cash_deposit_limit" class="form-input rounded border-gray-300 w-full" value="{{ aml_settings.cash_deposit_limit }}">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="structuring_detection_limit">Structuring Detection Limit ($)</label>
+            <input type="number" id="structuring_detection_limit" name="structuring_detection_limit" class="form-input rounded border-gray-300 w-full" value="{{ aml_settings.structuring_detection_limit }}">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="mismatched_behavior_multiplier">Mismatched Behavior Multiplier (x)</label>
+            <input type="number" id="mismatched_behavior_multiplier" name="mismatched_behavior_multiplier" class="form-input rounded border-gray-300 w-full" value="{{ aml_settings.mismatched_behavior_multiplier }}">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="inactive_days_threshold">Inactive Days Threshold</label>
+            <input type="number" id="inactive_days_threshold" name="inactive_days_threshold" class="form-input rounded border-gray-300 w-full" value="{{ aml_settings.inactive_days_threshold }}">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="circular_transaction_window">Circular Transaction Window (hours)</label>
+            <input type="number" id="circular_transaction_window" name="circular_transaction_window" class="form-input rounded border-gray-300 w-full" value="{{ aml_settings.circular_transaction_window }}">
+          </div>
+        </div>
+      </div>
+      
+      <!-- 2. Suspicious Transaction Indicators -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">2. Suspicious Transaction Indicators</h2>
+        
+        <!-- Cash Transactions -->
+        <div class="mb-4">
+          <h3 class="text-md font-medium text-gray-700 mb-2">Cash Transactions</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="large_cash_deposits" name="large_cash_deposits" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.large_cash_deposits %}checked{% endif %}>
+                <label for="large_cash_deposits" class="text-sm text-gray-700">Unusually large cash deposits inconsistent with the customer's profile</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Threshold Amount ($)</label>
+                <input type="number" id="large_cash_deposits_threshold" name="large_cash_deposits_threshold" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.large_cash_deposits_threshold }}">
+              </div>
+            </div>
+            
+            <!-- New section for Withdrawals, Transfers, Payments -->
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="large_withdrawals" name="large_withdrawals" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.large_withdrawals %}checked{% endif %}>
+                <label for="large_withdrawals" class="text-sm text-gray-700">Unusually large withdrawals inconsistent with the customer's profile</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Threshold Amount ($)</label>
+                <input type="number" id="large_withdrawals_threshold" name="large_withdrawals_threshold" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.large_withdrawals_threshold }}">
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="large_transfers" name="large_transfers" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.large_transfers %}checked{% endif %}>
+                <label for="large_transfers" class="text-sm text-gray-700">Unusually large transfers inconsistent with the customer's profile</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Threshold Amount ($)</label>
+                <input type="number" id="large_transfers_threshold" name="large_transfers_threshold" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.large_transfers_threshold }}">
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="large_payments" name="large_payments" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.large_payments %}checked{% endif %}>
+                <label for="large_payments" class="text-sm text-gray-700">Unusually large payments inconsistent with the customer's profile</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Threshold Amount ($)</label>
+                <input type="number" id="large_payments_threshold" name="large_payments_threshold" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.large_payments_threshold }}">
+              </div>
+            </div>
+            <!-- End of new section -->
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="frequent_currency_exchange" name="frequent_currency_exchange" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.frequent_currency_exchange %}checked{% endif %}>
+                <label for="frequent_currency_exchange" class="text-sm text-gray-700">Frequent exchange of cash into other currencies</label>
+              </div>
+              <div class="pl-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Exchange Count Threshold</label>
+                  <input type="number" id="currency_exchange_count_threshold" name="currency_exchange_count_threshold" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.currency_exchange_count_threshold }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Time Window (days)</label>
+                  <input type="number" id="currency_exchange_time_window" name="currency_exchange_time_window" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.currency_exchange_time_window }}">
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="structured_deposits" name="structured_deposits" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.structured_deposits %}checked{% endif %}>
+                <label for="structured_deposits" class="text-sm text-gray-700">Structuring deposits to avoid reporting thresholds (e.g., multiple small deposits)</label>
+              </div>
+              <div class="pl-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Total Amount Threshold ($)</label>
+                  <input type="number" id="structured_deposits_threshold" name="structured_deposits_threshold" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.structured_deposits_threshold }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Deposit Count</label>
+                  <input type="number" id="structured_deposits_count" name="structured_deposits_count" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.structured_deposits_count }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Time Window (days)</label>
+                  <input type="number" id="structured_deposits_window" name="structured_deposits_window" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.structured_deposits_window }}">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Account Activity -->
+        <div class="mb-4">
+          <h3 class="text-md font-medium text-gray-700 mb-2">Account Activity</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="dormant_account_activity" name="dormant_account_activity" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.dormant_account_activity %}checked{% endif %}>
+                <label for="dormant_account_activity" class="text-sm text-gray-700">Dormant accounts suddenly receiving large deposits</label>
+              </div>
+              <div class="pl-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Dormancy Threshold (days)</label>
+                  <input type="number" id="dormant_days_threshold" name="dormant_days_threshold" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.dormant_days_threshold }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Activity Amount Threshold ($)</label>
+                  <input type="number" id="dormant_activity_amount" name="dormant_activity_amount" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.dormant_activity_amount }}">
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="rapid_fund_movement" name="rapid_fund_movement" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.rapid_fund_movement %}checked{% endif %}>
+                <label for="rapid_fund_movement" class="text-sm text-gray-700">Rapid movement of funds in and out of accounts</label>
+              </div>
+              <div class="pl-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Percentage Threshold (%)</label>
+                  <input type="number" id="rapid_movement_percentage" name="rapid_movement_percentage" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.rapid_movement_percentage }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Time Window (hours)</label>
+                  <input type="number" id="rapid_movement_window" name="rapid_movement_window" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.rapid_movement_window }}">
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="inconsistent_transactions" name="inconsistent_transactions" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.inconsistent_transactions %}checked{% endif %}>
+                <label for="inconsistent_transactions" class="text-sm text-gray-700">Transactions inconsistent with the customer's known business activities</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Amount Multiplier (x average transaction)</label>
+                <input type="number" id="inconsistent_amount_multiplier" name="inconsistent_amount_multiplier" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.inconsistent_amount_multiplier }}" step="0.1">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Wire Transfers -->
+        <div class="mb-4">
+          <h3 class="text-md font-medium text-gray-700 mb-2">Wire Transfers</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="high_risk_jurisdictions" name="high_risk_jurisdictions" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.high_risk_jurisdictions %}checked{% endif %}>
+                <label for="high_risk_jurisdictions" class="text-sm text-gray-700">Transfers to/from high-risk jurisdictions (e.g., FATF non-cooperative countries)</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">High Risk Countries (comma-separated ISO codes)</label>
+                <input type="text" id="high_risk_countries" name="high_risk_countries" class="form-input rounded border-gray-300 w-full" 
+                       value="{{ aml_settings.high_risk_countries }}">
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="small_frequent_transfers" name="small_frequent_transfers" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.small_frequent_transfers %}checked{% endif %}>
+                <label for="small_frequent_transfers" class="text-sm text-gray-700">Frequent small transfers to avoid detection</label>
+              </div>
+              <div class="pl-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Small Transfer Threshold ($)</label>
+                  <input type="number" id="small_transfer_threshold" name="small_transfer_threshold" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.small_transfer_threshold }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Frequency Count</label>
+                  <input type="number" id="small_transfer_frequency" name="small_transfer_frequency" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.small_transfer_frequency }}">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Time Window (days)</label>
+                  <input type="number" id="small_transfer_window" name="small_transfer_window" class="form-input rounded border-gray-300 w-full" 
+                         value="{{ aml_settings.small_transfer_window }}">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- High-Risk Customers -->
+        <div class="mb-4">
+          <h3 class="text-md font-medium text-gray-700 mb-2">High-Risk Customers</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="nonprofit_suspicious" name="nonprofit_suspicious" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.nonprofit_suspicious %}checked{% endif %}>
+                <label for="nonprofit_suspicious" class="text-sm text-gray-700">Non-profit organizations with unexplained transactions</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Transaction Threshold ($)</label>
+                <input type="number" id="nonprofit_transaction_threshold" name="nonprofit_transaction_threshold" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.nonprofit_transaction_threshold }}">
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="shell_companies" name="shell_companies" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.shell_companies %}checked{% endif %}>
+                <label for="shell_companies" class="text-sm text-gray-700">Trusts or shell companies with no clear business purpose</label>
+              </div>
+              <div class="pl-6">
+                <label class="block text-xs text-gray-600 mb-1">Company Age Threshold (days)</label>
+                <input type="number" id="shell_company_age_threshold" name="shell_company_age_threshold" class="form-input rounded border-gray-300 w-full md:w-1/3" 
+                       value="{{ aml_settings.shell_company_age_threshold }}">
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="high_risk_jurisdictions_customers" name="high_risk_jurisdictions_customers" class="form-checkbox rounded text-blue-600 mr-2" {% if aml_settings.high_risk_jurisdictions_customers %}checked{% endif %}>
+                <label for="high_risk_jurisdictions_customers" class="text-sm text-gray-700">Customers linked to high-risk jurisdictions</label>
+              </div>
+              <!-- This uses the same high risk countries list as defined earlier -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 3. Alert Management -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">3. Alert Management</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="critical_alert_action">Critical Alert Action</label>
+            <select id="critical_alert_action" name="critical_alert_action" class="form-select rounded border-gray-300 w-full">
+              <option value="freeze" {% if aml_settings.critical_alert_action == 'freeze' %}selected{% endif %}>Freeze Account</option>
+              <option value="notify" {% if aml_settings.critical_alert_action == 'notify' %}selected{% endif %}>Notify Only</option>
+              <option value="review" {% if aml_settings.critical_alert_action == 'review' %}selected{% endif %}>Manual Review</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="high_alert_action">High Alert Action</label>
+            <select id="high_alert_action" name="high_alert_action" class="form-select rounded border-gray-300 w-full">
+              <option value="hold" {% if aml_settings.high_alert_action == 'hold' %}selected{% endif %}>Hold Transaction</option>
+              <option value="restrict" {% if aml_settings.high_alert_action == 'restrict' %}selected{% endif %}>Restrict Account</option>
+              <option value="notify" {% if aml_settings.high_alert_action == 'notify' %}selected{% endif %}>Notify Only</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="standard_alert_action">Standard Alert Action</label>
+            <select id="standard_alert_action" name="standard_alert_action" class="form-select rounded border-gray-300 w-full">
+              <option value="routine" {% if aml_settings.standard_alert_action == 'routine' %}selected{% endif %}>Routine Review</option>
+              <option value="flag" {% if aml_settings.standard_alert_action == 'flag' %}selected{% endif %}>Flag Customer</option>
+              <option value="notify" {% if aml_settings.standard_alert_action == 'notify' %}selected{% endif %}>Notify Only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Submit Button -->
+      <div class="mt-8 text-center">
+        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+          Save Configuration
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

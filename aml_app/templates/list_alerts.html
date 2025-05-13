@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 p-6">
+  <div class="max-w-5xl mx-auto">
+
+    <!-- Page Title & Optional Filters -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Alerts Dashboard</h1>
+      <!-- Filter Form -->
+      <form method="GET" class="flex items-center space-x-2">
+        <select
+          name="alert_type"
+          class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500"
+        >
+          <option value="">All Types</option>
+          <option value="KYC" {% if request.GET.alert_type == "KYC" %}selected{% endif %}>KYC</option>
+          <option value="TXN" {% if request.GET.alert_type == "TXN" %}selected{% endif %}>Transaction</option>
+        </select>
+        <select
+          name="severity"
+          class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500"
+        >
+          <option value="">All Severities</option>
+          <option value="LOW" {% if request.GET.severity == "LOW" %}selected{% endif %}>Low</option>
+          <option value="MEDIUM" {% if request.GET.severity == "MEDIUM" %}selected{% endif %}>Medium</option>
+          <option value="HIGH" {% if request.GET.severity == "HIGH" %}selected{% endif %}>High</option>
+        </select>
+        <select
+          name="status"
+          class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500"
+        >
+          <option value="">All Statuses</option>
+          <option value="OPEN" {% if request.GET.status == "OPEN" %}selected{% endif %}>Open</option>
+          <option value="RESOLVED" {% if request.GET.status == "RESOLVED" %}selected{% endif %}>Resolved</option>
+        </select>
+        <button
+          type="submit"
+          class="bg-[#f68430] text-white px-4 py-1 rounded-md text-sm font-semibold hover:bg-orange-300 transition"
+        >
+          Filter
+        </button>
+      </form>
+    </div>
+
+    <!-- Alerts Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">Type</th>
+            <th class="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">Severity</th>
+            <th class="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">Status</th>
+            <th class="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">Title</th>
+            <th class="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">Created At</th>
+            <th class="px-4 py-2 border-b text-right text-sm font-medium text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alert in page_obj %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-4 py-2 text-sm text-gray-800">
+              <!-- Alert Type Badge -->
+              {% if alert.alert_type == "KYC" %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-blue-600 rounded-full">
+                  KYC
+                </span>
+              {% else %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-blue-950 rounded-full">
+                  Transaction
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-sm">
+              <!-- Severity Badge -->
+              {% if alert.severity == "LOW" %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-green-600 rounded-full">
+                  Low
+                </span>
+              {% elif alert.severity == "MEDIUM" %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-yellow-600 rounded-full">
+                  Medium
+                </span>
+              {% else %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-red-600 rounded-full">
+                  High
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-sm">
+              <!-- Status Badge -->
+              {% if alert.status == "OPEN" %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-red-800 rounded-full">
+                  Open
+                </span>
+              {% else %}
+                <span class="inline-block px-2 py-1 text-xs font-semibold  text-green-800 rounded-full">
+                  Resolved
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-700">
+              {{ alert.title }}
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-500">
+              {{ alert.created_at|date:"Y-m-d H:i" }}
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-700 text-right">
+              <!-- e.g. "View" or "Resolve" -->
+              {% if alert.status == "OPEN" %}
+                <a
+                  href="{% url 'alert_detail' alert.id %}"
+                  class="inline-block bg-[#f68430] text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-orange-300 transition"
+                >
+                  Proceed To Case
+                </a>
+              {% else %}
+                <span class="text-sm text-gray-400">-</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-4 text-center text-gray-500 text-sm">
+              No alerts found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-sm text-gray-600">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </div>
+      <div class="space-x-2">
+        {% if page_obj.has_previous %}
+          <a
+            href="?page=1{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}{% if request.GET.alert_type %}&alert_type={{ request.GET.alert_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+            class="px-3 py-1 border rounded text-sm text-gray-700 hover:bg-gray-200"
+          >
+            First
+          </a>
+          <a
+            href="?page={{ page_obj.previous_page_number }}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}{% if request.GET.alert_type %}&alert_type={{ request.GET.alert_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+            class="px-3 py-1 border rounded text-sm text-gray-700 hover:bg-gray-200"
+          >
+            Previous
+          </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a
+            href="?page={{ page_obj.next_page_number }}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}{% if request.GET.alert_type %}&alert_type={{ request.GET.alert_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+            class="px-3 py-1 border rounded text-sm text-gray-700 hover:bg-gray-200"
+          >
+            Next
+          </a>
+          <a
+            href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.severity %}&severity={{ request.GET.severity }}{% endif %}{% if request.GET.alert_type %}&alert_type={{ request.GET.alert_type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+            class="px-3 py-1 border rounded text-sm text-gray-700 hover:bg-gray-200"
+          >
+            Last
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

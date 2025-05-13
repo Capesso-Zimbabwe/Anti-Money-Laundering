@@ -1,0 +1,1163 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100 p-6 text-sm">
+  <div class="w-full max-w-5xl bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-lg font-bold text-gray-800 text-center mb-6">
+      Register Business KYC Profile
+    </h2>
+    
+    <!-- Display Django messages -->
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="p-4 mb-2 text-sm {% if message.tags == 'success' %}text-green-700 bg-green-100{% elif message.tags == 'error' %}text-red-700 bg-red-100{% else %}text-gray-700 bg-gray-100{% endif %} rounded-lg" role="alert">
+            {% if "Value is too long" in message|striptags or "field value is too long" in message|striptags %}
+              <div class="font-bold text-base mb-1">⚠️ Field Length Error ⚠️</div>
+              <div>{{ message }}</div>
+              <div class="mt-2 text-xs">
+                <p>Please check the highlighted field below and ensure it doesn't exceed the maximum character limit.</p>
+              </div>
+            {% else %}
+            {{ message }}
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <!-- Display form-wide errors if they exist -->
+    {% if form.errors %}
+      <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+        There were errors in your submission. Please correct them and try again.
+      </div>
+      {% if form.non_field_errors %}
+        <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+    
+    <!-- Form Steps Progress Bar -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+      <div id="step-1-indicator" class="flex flex-col items-center">
+          <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+        <span class="text-xs mt-1">Business Info</span>
+      </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-1-2"></div>
+      <div id="step-2-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">2</div>
+          <span class="text-xs mt-1">Documents</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-2-3"></div>
+      <div id="step-3-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">3</div>
+          <span class="text-xs mt-1">Contact Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-3-4"></div>
+      <div id="step-4-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">4</div>
+          <span class="text-xs mt-1">Owners</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-4-5"></div>
+      <div id="step-5-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">5</div>
+          <span class="text-xs mt-1">Financial Info</span>
+        </div>
+      </div>
+    </div>
+    
+    <form id="business-kyc-form" method="POST" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="is_draft" id="is_draft" value="true">
+      <input type="hidden" name="current_step" id="current_step" value="1">
+      <input type="hidden" name="beneficial_owners_json" id="beneficial_owners_json" value="{{ beneficial_owners_json }}">
+      
+      <!-- Step 1: Business Information -->
+      <div id="step-1" class="bg-gray-100 p-4 rounded-md">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Business ID -->
+          <div>
+            <label for="{{ form.business_id.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business ID <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_id|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_id.errors %}visible{% else %}hidden{% endif %}" id="error-business_id">
+              {% if form.business_id.errors %}{{ form.business_id.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Business Name -->
+          <div>
+            <label for="{{ form.business_name.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_name|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_name.errors %}visible{% else %}hidden{% endif %}" id="error-business_name">
+              {% if form.business_name.errors %}{{ form.business_name.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Registration Date -->
+          <div>
+            <label for="{{ form.registration_date.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Registration Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.registration_date|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.registration_date.errors %}visible{% else %}hidden{% endif %}" id="error-registration_date">
+              {% if form.registration_date.errors %}{{ form.registration_date.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Business Type -->
+          <div>
+            <label for="{{ form.business_type.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_type|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_type.errors %}visible{% else %}hidden{% endif %}" id="error-business_type">
+              {% if form.business_type.errors %}{{ form.business_type.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Industry Sector -->
+          <div>
+            <label for="{{ form.industry_sector.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Industry Sector <span class="text-red-500">*</span>
+            </label>
+            {{ form.industry_sector|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.industry_sector.errors %}visible{% else %}hidden{% endif %}" id="error-industry_sector">
+              {% if form.industry_sector.errors %}{{ form.industry_sector.errors.0 }}{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 2: Registration Documents -->
+      <div id="step-2" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Registration Documents</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Registration Number -->
+          <div>
+            <label for="{{ form.registration_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Registration Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.registration_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.registration_number.errors %}visible{% else %}hidden{% endif %}" id="error-registration_number">
+              {% if form.registration_number.errors %}{{ form.registration_number.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Tax ID Number -->
+          <div>
+            <label for="{{ form.tax_id_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Tax ID Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.tax_id_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.tax_id_number.errors %}visible{% else %}hidden{% endif %}" id="error-tax_id_number">
+              {% if form.tax_id_number.errors %}{{ form.tax_id_number.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Country of Registration -->
+          <div>
+            <label for="{{ form.registration_country.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Country of Registration <span class="text-red-500">*</span>
+            </label>
+            {{ form.registration_country|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.registration_country.errors %}visible{% else %}hidden{% endif %}" id="error-registration_country">
+              {% if form.registration_country.errors %}{{ form.registration_country.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- License Expiry Date -->
+          <div>
+            <label for="{{ form.license_expiry_date.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              License Expiry Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.license_expiry_date|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.license_expiry_date.errors %}visible{% else %}hidden{% endif %}" id="error-license_expiry_date">
+              {% if form.license_expiry_date.errors %}{{ form.license_expiry_date.errors.0 }}{% endif %}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Document Uploads Section -->
+        <div class="mt-6 border-t border-gray-300 pt-4">
+          <h4 class="text-md font-semibold text-gray-700 mb-3">Upload Required Documents</h4>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Upload Business Registration Document -->
+            <div class="mb-4">
+              <label for="{{ form.registration_document.id_for_label }}" class="block text-sm font-medium text-gray-700">Business Registration Document</label>
+              <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50">
+                <div class="space-y-1 text-center">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4h-12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <div class="flex text-sm text-gray-600">
+                    <label for="{{ form.registration_document.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                      <span>Upload a file</span>
+                      <input id="{{ form.registration_document.id_for_label }}" name="registration_document" type="file" class="sr-only" accept="image/*,.pdf">
+            </label>
+                    <p class="pl-1">or drag and drop</p>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    Business Certificate, Company Incorporation, or Business License
+                  </p>
+                </div>
+              </div>
+              <div id="registration_document_preview" class="mt-2 hidden">
+                <p class="text-sm text-gray-500">Document preview:</p>
+                <div class="mt-1 border border-gray-300 rounded p-2">
+                  <img src="" alt="Document preview" class="max-h-40 mx-auto" />
+                </div>
+              </div>
+              {% if form.registration_document.errors %}
+              <div id="error-{{ form.registration_document.name }}" class="mt-1 text-sm text-red-600">
+                {{ form.registration_document.errors }}
+          </div>
+          {% endif %}
+            </div>
+            
+            <!-- Upload Tax Registration Document -->
+            <div class="mb-4">
+              <label for="{{ form.tax_document.id_for_label }}" class="block text-sm font-medium text-gray-700">Tax Registration Document</label>
+              <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50">
+                <div class="space-y-1 text-center">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4h-12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <div class="flex text-sm text-gray-600">
+                    <label for="{{ form.tax_document.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                      <span>Upload a file</span>
+                      <input id="{{ form.tax_document.id_for_label }}" name="tax_document" type="file" class="sr-only" accept="image/*,.pdf">
+            </label>
+                    <p class="pl-1">or drag and drop</p>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    VAT Certificate, Tax ID, or Tax Registration Number
+                  </p>
+                </div>
+              </div>
+              <div id="tax_document_preview" class="mt-2 hidden">
+                <p class="text-sm text-gray-500">Document preview:</p>
+                <div class="mt-1 border border-gray-300 rounded p-2">
+                  <img src="" alt="Document preview" class="max-h-40 mx-auto" />
+                </div>
+              </div>
+              {% if form.tax_document.errors %}
+              <div id="error-{{ form.tax_document.name }}" class="mt-1 text-sm text-red-600">
+                {{ form.tax_document.errors }}
+          </div>
+          {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 3: Contact Information -->
+      <div id="step-3" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Contact Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Business Email -->
+          <div>
+            <label for="{{ form.business_email.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Email <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_email|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_email.errors %}visible{% else %}hidden{% endif %}" id="error-business_email">
+              {% if form.business_email.errors %}{{ form.business_email.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Business Phone Number -->
+          <div>
+            <label for="{{ form.business_phone.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Phone Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_phone|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_phone.errors %}visible{% else %}hidden{% endif %}" id="error-business_phone">
+              {% if form.business_phone.errors %}{{ form.business_phone.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Business Address -->
+          <div>
+            <label for="{{ form.business_address.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Address <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_address|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_address.errors %}visible{% else %}hidden{% endif %}" id="error-business_address">
+              {% if form.business_address.errors %}{{ form.business_address.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- City -->
+          <div>
+            <label for="{{ form.business_city.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              City <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_city|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_city.errors %}visible{% else %}hidden{% endif %}" id="error-business_city">
+              {% if form.business_city.errors %}{{ form.business_city.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Country -->
+          <div>
+            <label for="{{ form.business_country.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Country <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_country|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_country.errors %}visible{% else %}hidden{% endif %}" id="error-business_country">
+              {% if form.business_country.errors %}{{ form.business_country.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Website -->
+          <div>
+            <label for="{{ form.business_website.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Website
+            </label>
+            {{ form.business_website|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.business_website.errors %}visible{% else %}hidden{% endif %}" id="error-business_website">
+              {% if form.business_website.errors %}{{ form.business_website.errors.0 }}{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 4: Ownership & Beneficial Owners -->
+      <div id="step-4" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Ownership Structure & Beneficial Owners</h3>
+        
+          <!-- Ownership Structure -->
+        <div class="mb-4">
+          <label for="{{ form.ownership_structure.id_for_label }}" class="block text-xs text-gray-700 font-semibold mb-2">
+              Ownership Structure <span class="text-red-500">*</span>
+            </label>
+          {{ form.ownership_structure|add_class:"w-full border border-gray-300 p-2 rounded-md text-xs" }}
+          <span class="error-message text-red-500 text-xs {% if form.ownership_structure.errors %}visible{% else %}hidden{% endif %}" id="error-ownership_structure">
+            {% if form.ownership_structure.errors %}{{ form.ownership_structure.errors.0 }}{% endif %}
+          </span>
+          </div>
+          
+        <!-- Beneficial Owner Section -->
+        <div id="beneficial_owners_section">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-md font-semibold text-gray-700">Beneficial Owners</h4>
+            <button type="button" id="add_owner_btn" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">+ Add Owner</button>
+          </div>
+          
+          <div id="owners_container">
+            <!-- Owners will be added here dynamically -->
+          </div>
+          
+          <!-- Template for beneficial owner (hidden) -->
+          <template id="owner_template">
+            <div class="beneficial-owner border border-gray-200 p-3 rounded mb-3">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="text-md font-semibold text-gray-700">Beneficial Owner <span class="owner-number"></span></h4>
+                <button type="button" class="remove-owner-btn text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Remove</button>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Owner Full Name -->
+                <div>
+                  <label class="block text-xs text-gray-700 font-semibold">
+                    Full Name <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" class="owner-name rounded-md border border-gray-300 p-1 text-xs w-full">
+                </div>
+                <!-- Owner Nationality -->
+                <div>
+                  <label class="block text-xs text-gray-700 font-semibold">
+                    Nationality <span class="text-red-500">*</span>
+                  </label>
+                  <select class="owner-nationality w-full border border-gray-300 p-2 rounded-md text-xs">
+                    <option value="">Select Nationality</option>
+                  </select>
+                </div>
+                <!-- Owner ID Type -->
+                <div>
+                  <label class="block text-xs text-gray-700 font-semibold">
+                    ID Document Type <span class="text-red-500">*</span>
+                  </label>
+                  <select class="owner-id-type rounded-md border border-gray-300 p-1 text-xs">
+                    <option value="">Select ID Type</option>
+                    <option value="passport">Passport</option>
+                    <option value="national_id">National ID</option>
+                    <option value="drivers_license">Driver's License</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <!-- Owner ID Number -->
+                <div>
+                  <label class="block text-xs text-gray-700 font-semibold">
+                    ID Document Number <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" class="owner-id-number rounded-md border border-gray-300 p-1 text-xs">
+                </div>
+                <!-- Ownership Percentage -->
+                <div>
+                  <label class="block text-xs text-gray-700 font-semibold">
+                    Ownership Percentage <span class="text-red-500">*</span>
+                  </label>
+                  <input type="number" class="owner-percentage rounded-md border border-gray-300 p-1 w-20 text-xs" min="0" max="100">
+                </div>
+                <!-- PEP Status -->
+                <div>
+                  <label class="block text-xs text-gray-700 font-semibold">
+                    PEP Status
+                  </label>
+                  <select class="owner-pep-status rounded-md border border-gray-300 p-1 text-xs">
+                    <option value="no">Not a PEP</option>
+                    <option value="yes">Politically Exposed Person</option>
+                    <option value="relative">Relative of a PEP</option>
+                    <option value="associate">Close Associate of a PEP</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+      
+      <!-- Step 5: Business Financial Information & Compliance -->
+      <div id="step-5" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Financial Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Annual Revenue -->
+          <div>
+            <label for="{{ form.annual_revenue.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Annual Revenue <span class="text-red-500">*</span>
+            </label>
+            {{ form.annual_revenue|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.annual_revenue.errors %}visible{% else %}hidden{% endif %}" id="error-annual_revenue">
+              {% if form.annual_revenue.errors %}{{ form.annual_revenue.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Source of Funds -->
+          <div>
+            <label for="{{ form.source_of_funds.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Primary Source of Funds <span class="text-red-500">*</span>
+            </label>
+            {{ form.source_of_funds|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.source_of_funds.errors %}visible{% else %}hidden{% endif %}" id="error-source_of_funds">
+              {% if form.source_of_funds.errors %}{{ form.source_of_funds.errors.0 }}{% endif %}
+            </span>
+          </div>
+        </div>
+        <div class="mt-3">
+            <label for="{{ form.business_purpose.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+            Business Activities & Purpose <span class="text-red-500">*</span>
+            </label>
+          {{ form.business_purpose|add_class:"w-full rounded-md border border-gray-300 p-2 text-xs" }}
+          <span class="error-message text-red-500 text-xs {% if form.business_purpose.errors %}visible{% else %}hidden{% endif %}" id="error-business_purpose">
+            {% if form.business_purpose.errors %}{{ form.business_purpose.errors.0 }}{% endif %}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-3">
+          <!-- Expected Transaction Volume -->
+          <div>
+            <label for="{{ form.transaction_volume.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Expected Monthly Transaction Volume <span class="text-red-500">*</span>
+            </label>
+            {{ form.transaction_volume|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.transaction_volume.errors %}visible{% else %}hidden{% endif %}" id="error-transaction_volume">
+              {% if form.transaction_volume.errors %}{{ form.transaction_volume.errors.0 }}{% endif %}
+            </span>
+          </div>
+          </div>
+          
+        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-3">Banking Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Bank Name -->
+          <div>
+            <label for="{{ form.bank_name.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Bank Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.bank_name|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.bank_name.errors %}visible{% else %}hidden{% endif %}" id="error-bank_name">
+              {% if form.bank_name.errors %}{{ form.bank_name.errors.0 }}{% endif %}
+            </span>
+            </div>
+          <!-- Account Number -->
+          <div>
+            <label for="{{ form.account_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.account_number.errors %}visible{% else %}hidden{% endif %}" id="error-account_number">
+              {% if form.account_number.errors %}{{ form.account_number.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Account Type -->
+          <div>
+            <label for="{{ form.account_type.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_type|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.account_type.errors %}visible{% else %}hidden{% endif %}" id="error-account_type">
+              {% if form.account_type.errors %}{{ form.account_type.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Swift/BIC Code -->
+          <div>
+            <label for="{{ form.swift_code.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Swift/BIC Code <span class="text-red-500">*</span>
+            </label>
+            {{ form.swift_code|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.swift_code.errors %}visible{% else %}hidden{% endif %}" id="error-swift_code">
+              {% if form.swift_code.errors %}{{ form.swift_code.errors.0 }}{% endif %}
+            </span>
+        </div>
+      </div>
+      
+        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-3">Risk Assessment & Compliance</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- High Risk Jurisdiction -->
+          <div>
+            <label class="block text-xs text-gray-700 font-semibold mb-2">
+              Does the business operate in high-risk jurisdictions?
+            </label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="high_risk_jurisdiction" value="false" class="form-radio" {% if form.high_risk_jurisdiction.value == False %}checked{% endif %}>
+                <span class="ml-2 text-xs">No</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="high_risk_jurisdiction" value="true" class="form-radio" {% if form.high_risk_jurisdiction.value == True %}checked{% endif %}>
+                <span class="ml-2 text-xs">Yes</span>
+              </label>
+          </div>
+          </div>
+          <!-- Sanctions History -->
+          <div>
+            <label class="block text-xs text-gray-700 font-semibold mb-2">
+              Has the business been subject to regulatory sanctions?
+            </label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="sanctions_history" value="false" class="form-radio" {% if form.sanctions_history.value == False %}checked{% endif %}>
+                <span class="ml-2 text-xs">No</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="sanctions_history" value="true" class="form-radio" {% if form.sanctions_history.value == True %}checked{% endif %}>
+                <span class="ml-2 text-xs">Yes</span>
+              </label>
+          </div>
+          </div>
+          <!-- AML Policy -->
+          <div>
+            <label class="block text-xs text-gray-700 font-semibold mb-2">
+              Does the business have an AML policy?
+            </label>
+            <div class="flex space-x-4">
+              <label class="inline-flex items-center">
+                <input type="radio" name="aml_policy" value="false" class="form-radio" {% if form.aml_policy.value == False %}checked{% endif %}>
+                <span class="ml-2 text-xs">No</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input type="radio" name="aml_policy" value="true" class="form-radio" {% if form.aml_policy.value == True %}checked{% endif %}>
+                <span class="ml-2 text-xs">Yes</span>
+              </label>
+          </div>
+          </div>
+          <!-- Compliance Officer -->
+          <div>
+            <label for="{{ form.compliance_officer.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Compliance Officer Name (if applicable)
+            </label>
+            {{ form.compliance_officer|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          </div>
+        </div>
+        
+        <!-- Declaration & Consent -->
+        <div class="mt-6">
+            <div class="mb-3">
+            <label class="inline-flex items-center text-xs">
+              <input type="checkbox" id="declaration_checkbox" name="declaration_accepted" class="form-checkbox" {% if form.declaration_accepted.value %}checked{% endif %}>
+              <span class="ml-2 text-xs">I declare that the information provided in this form is true and accurate to the best of my knowledge.</span>
+              </label>
+            <span class="error-message text-red-500 text-xs hidden" id="error-declaration_accepted"></span>
+            </div>
+          <div class="mb-3">
+            <label class="inline-flex items-center text-xs">
+              <input type="checkbox" id="consent_checkbox" name="consent_accepted" class="form-checkbox" {% if form.consent_accepted.value %}checked{% endif %}>
+              <span class="ml-2 text-xs">I consent to the processing of the provided information for the purpose of anti-money laundering compliance.</span>
+              </label>
+            <span class="error-message text-red-500 text-xs hidden" id="error-consent_accepted"></span>
+            </div>
+        </div>
+      </div>
+      
+      <!-- Form Navigation Buttons -->
+      <div class="flex justify-between mt-6">
+        <button 
+          type="button" 
+          id="prev-btn" 
+          class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 hidden"
+        >
+          Previous
+        </button>
+        <div>
+          <button
+            type="button"
+            id="save-draft-btn"
+            class="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 mr-2"
+          >
+            Save as Draft
+          </button>
+          <button 
+            type="button" 
+            id="next-btn" 
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Next
+          </button>
+          <button 
+            type="submit" 
+            id="submit-btn" 
+            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 hidden"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form variables
+    let currentStep = 1;
+    const totalSteps = 5;
+    const form = document.getElementById('business-kyc-form');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const saveDraftBtn = document.getElementById('save-draft-btn');
+    const currentStepInput = document.getElementById('current_step');
+    const isDraftInput = document.getElementById('is_draft');
+    const beneficialOwnersJsonInput = document.getElementById('beneficial_owners_json');
+    
+    // Countries data for dropdowns
+    const countries = [
+      {code: 'US', name: 'United States'},
+      {code: 'GB', name: 'United Kingdom'},
+      {code: 'CA', name: 'Canada'},
+      {code: 'AU', name: 'Australia'},
+      {code: 'DE', name: 'Germany'},
+      {code: 'FR', name: 'France'},
+      {code: 'JP', name: 'Japan'},
+      {code: 'CN', name: 'China'},
+      {code: 'IN', name: 'India'},
+      {code: 'BR', name: 'Brazil'},
+      {code: 'RU', name: 'Russia'},
+      {code: 'ZA', name: 'South Africa'},
+      {code: 'NG', name: 'Nigeria'},
+      {code: 'KE', name: 'Kenya'},
+      {code: 'GH', name: 'Ghana'},
+      {code: 'MX', name: 'Mexico'},
+      // Add more countries as needed
+    ];
+    
+    // Required fields by step
+    const requiredFields = {
+      1: ['business_id', 'business_name', 'registration_date', 'business_type', 'industry_sector'],
+      2: ['registration_number', 'tax_id_number', 'registration_country', 'license_expiry_date', 'registration_document', 'tax_document'],
+      3: ['business_email', 'business_phone', 'business_address', 'business_city', 'business_country'],
+      4: ['ownership_structure'],
+      5: ['annual_revenue', 'source_of_funds', 'business_purpose', 'transaction_volume', 
+          'bank_name', 'account_number', 'account_type', 'swift_code']
+    };
+    
+    // Beneficial owners management
+    let beneficialOwners = [];
+    try {
+      beneficialOwners = JSON.parse(beneficialOwnersJsonInput.value || '[]');
+    } catch (e) {
+      console.error('Error parsing beneficial owners JSON', e);
+      beneficialOwners = [];
+    }
+    
+    // Initialize beneficial owners
+    function initBeneficialOwners() {
+      const ownersContainer = document.getElementById('owners_container');
+      ownersContainer.innerHTML = '';
+      
+      if (beneficialOwners.length === 0) {
+        // Add at least one owner by default
+        addBeneficialOwner();
+      } else {
+        // Add existing owners
+        beneficialOwners.forEach(owner => {
+          addBeneficialOwner(owner);
+        });
+      }
+    }
+    
+    // Add beneficial owner
+    function addBeneficialOwner(ownerData = null) {
+      const ownersContainer = document.getElementById('owners_container');
+      const template = document.getElementById('owner_template');
+      const ownerEl = document.importNode(template.content, true).querySelector('.beneficial-owner');
+      
+      // Update owner number
+      const ownerNumber = ownersContainer.children.length + 1;
+      ownerEl.querySelector('.owner-number').textContent = '#' + ownerNumber;
+      
+      // Fill data if provided
+      if (ownerData) {
+        ownerEl.querySelector('.owner-name').value = ownerData.name || '';
+        ownerEl.querySelector('.owner-id-number').value = ownerData.id_document_number || '';
+        ownerEl.querySelector('.owner-percentage').value = ownerData.ownership_percentage || '';
+        
+        // Set select values after populating options
+        setTimeout(() => {
+          const nationalitySelect = ownerEl.querySelector('.owner-nationality');
+          const idTypeSelect = ownerEl.querySelector('.owner-id-type');
+          const pepStatusSelect = ownerEl.querySelector('.owner-pep-status');
+          
+          for (let i = 0; i < nationalitySelect.options.length; i++) {
+            if (nationalitySelect.options[i].value === ownerData.nationality) {
+              nationalitySelect.selectedIndex = i;
+              break;
+            }
+          }
+          
+          for (let i = 0; i < idTypeSelect.options.length; i++) {
+            if (idTypeSelect.options[i].value === ownerData.id_document_type) {
+              idTypeSelect.selectedIndex = i;
+              break;
+            }
+          }
+          
+          for (let i = 0; i < pepStatusSelect.options.length; i++) {
+            if (pepStatusSelect.options[i].value === ownerData.pep_status) {
+              pepStatusSelect.selectedIndex = i;
+              break;
+            }
+          }
+        }, 100);
+      }
+      
+      // Add remove button handler
+      ownerEl.querySelector('.remove-owner-btn').addEventListener('click', function() {
+        ownerEl.remove();
+        updateBeneficialOwnersJson();
+        updateOwnerNumbers();
+      });
+      
+      // Add input change handlers
+      const inputs = ownerEl.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('change', updateBeneficialOwnersJson);
+        input.addEventListener('input', function() {
+          // Clear error on input
+          const errorEl = this.nextElementSibling;
+          if (errorEl && errorEl.classList.contains('error-message')) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+          }
+          this.classList.remove('border-red-500');
+        });
+      });
+      
+      // Populate nationality dropdown
+      const nationalitySelect = ownerEl.querySelector('.owner-nationality');
+          countries.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country.name;
+            option.textContent = country.name;
+        nationalitySelect.appendChild(option);
+      });
+      
+      ownersContainer.appendChild(ownerEl);
+      updateBeneficialOwnersJson();
+    }
+    
+    // Update owner numbers after removal
+    function updateOwnerNumbers() {
+      const owners = document.querySelectorAll('.beneficial-owner');
+      owners.forEach((owner, index) => {
+        owner.querySelector('.owner-number').textContent = '#' + (index + 1);
+      });
+    }
+    
+    // Update beneficial owners JSON
+    function updateBeneficialOwnersJson() {
+      const owners = document.querySelectorAll('.beneficial-owner');
+      beneficialOwners = Array.from(owners).map(owner => {
+        return {
+          name: owner.querySelector('.owner-name').value,
+          nationality: owner.querySelector('.owner-nationality').value,
+          id_document_type: owner.querySelector('.owner-id-type').value,
+          id_document_number: owner.querySelector('.owner-id-number').value,
+          ownership_percentage: parseFloat(owner.querySelector('.owner-percentage').value || 0),
+          pep_status: owner.querySelector('.owner-pep-status').value
+        };
+      });
+      
+      beneficialOwnersJsonInput.value = JSON.stringify(beneficialOwners);
+    }
+    
+    // Add owner button handler
+    document.getElementById('add_owner_btn').addEventListener('click', function() {
+      addBeneficialOwner();
+    });
+    
+    // Update progress bar based on current step
+    function updateProgressBar() {
+      // Update step indicators
+      for (let i = 1; i <= totalSteps; i++) {
+        const indicator = document.getElementById(`step-${i}-indicator`);
+        const innerCircle = indicator.querySelector('div');
+        
+        if (i < currentStep) {
+          // Completed steps
+          indicator.classList.remove('opacity-50');
+          innerCircle.classList.remove('bg-gray-400');
+          innerCircle.classList.add('bg-green-600');
+        } else if (i === currentStep) {
+          // Current step
+          indicator.classList.remove('opacity-50');
+          innerCircle.classList.remove('bg-gray-400', 'bg-green-600');
+          innerCircle.classList.add('bg-blue-600');
+        } else {
+          // Future steps
+          indicator.classList.add('opacity-50');
+          innerCircle.classList.remove('bg-blue-600', 'bg-green-600');
+          innerCircle.classList.add('bg-gray-400');
+        }
+      }
+      
+      // Update progress bars between steps
+      for (let i = 1; i < totalSteps; i++) {
+        const progressBar = document.getElementById(`progress-${i}-${i+1}`);
+        
+        if (i < currentStep) {
+          // Progress bars before current step
+          progressBar.classList.remove('bg-gray-300');
+          progressBar.classList.add('bg-green-600');
+        } else {
+          // Progress bars after or at current step
+          progressBar.classList.remove('bg-green-600');
+          progressBar.classList.add('bg-gray-300');
+        }
+      }
+    }
+    
+    // Validate fields in the current step
+    function validateStep(step) {
+      let isValid = true;
+      
+      // Reset all error messages
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+      });
+      
+      // Remove error styling from fields
+      document.querySelectorAll('input, select, textarea').forEach(field => {
+        field.classList.remove('border-red-500');
+      });
+      
+      // Validate required fields for the current step
+        requiredFields[step].forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (!field) return; // Skip if field not found
+        
+        const errorEl = document.getElementById(`error-${fieldName}`);
+        if (!field.value.trim()) {
+            isValid = false;
+          if (errorEl) {
+            errorEl.textContent = 'This field is required';
+            errorEl.classList.remove('hidden');
+          }
+          field.classList.add('border-red-500');
+        }
+      });
+      
+      // Step-specific validations
+      if (step === 3) {
+        // Email validation
+        const emailField = document.querySelector('[name="business_email"]');
+        if (emailField && emailField.value && !isValidEmail(emailField.value)) {
+          isValid = false;
+          const errorEl = document.getElementById('error-business_email');
+          if (errorEl) {
+            errorEl.textContent = 'Please enter a valid email address';
+            errorEl.classList.remove('hidden');
+          }
+          emailField.classList.add('border-red-500');
+        }
+        
+        // Phone validation
+        const phoneField = document.querySelector('[name="business_phone"]');
+        if (phoneField && phoneField.value && !isValidPhone(phoneField.value)) {
+          isValid = false;
+          const errorEl = document.getElementById('error-business_phone');
+          if (errorEl) {
+            errorEl.textContent = 'Please enter a valid phone number';
+            errorEl.classList.remove('hidden');
+          }
+          phoneField.classList.add('border-red-500');
+        }
+      } else if (step === 4) {
+        // Validate beneficial owners if required
+        if (beneficialOwners.length === 0) {
+          isValid = false;
+          alert('Please add at least one beneficial owner');
+        } else {
+          // Validate beneficial owners fields
+          const owners = document.querySelectorAll('.beneficial-owner');
+          owners.forEach((owner, index) => {
+            const nameInput = owner.querySelector('.owner-name');
+            const nationalitySelect = owner.querySelector('.owner-nationality');
+            const idTypeSelect = owner.querySelector('.owner-id-type');
+            const idNumberInput = owner.querySelector('.owner-id-number');
+            const percentageInput = owner.querySelector('.owner-percentage');
+            
+            // Required fields for owners
+            [
+              { field: nameInput, label: 'Name' },
+              { field: nationalitySelect, label: 'Nationality' },
+              { field: idTypeSelect, label: 'ID Type' },
+              { field: idNumberInput, label: 'ID Number' },
+              { field: percentageInput, label: 'Ownership Percentage' }
+            ].forEach(item => {
+              if (!item.field.value.trim()) {
+                isValid = false;
+                const errorEl = item.field.nextElementSibling;
+                if (errorEl && errorEl.classList.contains('error-message')) {
+                  errorEl.textContent = `${item.label} is required`;
+                  errorEl.classList.remove('hidden');
+                }
+                item.field.classList.add('border-red-500');
+              }
+            });
+            
+            // Validate percentage is a number between 0-100
+            if (percentageInput.value && (isNaN(percentageInput.value) || 
+                parseFloat(percentageInput.value) < 0 || 
+                parseFloat(percentageInput.value) > 100)) {
+              isValid = false;
+              const errorEl = percentageInput.nextElementSibling;
+              if (errorEl && errorEl.classList.contains('error-message')) {
+                errorEl.textContent = 'Percentage must be between 0 and 100';
+                errorEl.classList.remove('hidden');
+              }
+              percentageInput.classList.add('border-red-500');
+            }
+          });
+          
+          // Validate total ownership percentage
+          const totalPercentage = beneficialOwners.reduce((sum, owner) => 
+            sum + (parseFloat(owner.ownership_percentage) || 0), 0);
+          
+          if (totalPercentage === 0) {
+            isValid = false;
+            alert('Total ownership percentage cannot be 0%');
+          } else if (totalPercentage > 100) {
+            isValid = false;
+            alert('Total ownership percentage exceeds 100%');
+          }
+        }
+      } else if (step === 5) {
+        // Validate declaration checkboxes on final step
+        const declarationCheckbox = document.getElementById('declaration_checkbox');
+        const consentCheckbox = document.getElementById('consent_checkbox');
+        
+        if (!declarationCheckbox.checked) {
+          isValid = false;
+          const errorEl = document.getElementById('error-declaration_accepted');
+          if (errorEl) {
+            errorEl.textContent = 'You must accept the declaration';
+            errorEl.classList.remove('hidden');
+          }
+        }
+        
+        if (!consentCheckbox.checked) {
+          isValid = false;
+          const errorEl = document.getElementById('error-consent_accepted');
+          if (errorEl) {
+            errorEl.textContent = 'You must provide consent';
+            errorEl.classList.remove('hidden');
+          }
+        }
+      }
+      
+      return isValid;
+    }
+    
+    // Show the specified step
+    function showStep(step) {
+      // Hide all steps
+      document.querySelectorAll('[id^="step-"]').forEach(el => {
+        if (el.id.startsWith('step-') && el.id.length === 7) {
+          el.classList.add('hidden');
+        }
+      });
+      
+      // Show current step
+      document.getElementById(`step-${step}`).classList.remove('hidden');
+      
+      // Update navigation buttons
+      if (step === 1) {
+        prevBtn.classList.add('hidden');
+      } else {
+        prevBtn.classList.remove('hidden');
+      }
+      
+      if (step === totalSteps) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+      }
+      
+      // Update progress indicators
+      updateProgressBar();
+      
+      // Update current step in hidden field
+      currentStepInput.value = step;
+    }
+    
+    // Helper functions
+    function isValidEmail(email) {
+      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(String(email).toLowerCase());
+    }
+    
+    function isValidPhone(phone) {
+      const re = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
+      return re.test(String(phone));
+    }
+    
+    // Event listeners for navigation buttons
+    nextBtn.addEventListener('click', function() {
+      if (validateStep(currentStep)) {
+        currentStep++;
+        showStep(currentStep);
+      }
+    });
+    
+    prevBtn.addEventListener('click', function() {
+      currentStep--;
+      showStep(currentStep);
+    });
+    
+    saveDraftBtn.addEventListener('click', function() {
+      isDraftInput.value = 'true';
+      
+      // Update beneficial owners JSON before saving
+      updateBeneficialOwnersJson();
+      
+      // No need to validate for drafts
+      form.submit();
+    });
+    
+    submitBtn.addEventListener('click', function() {
+      if (validateStep(currentStep)) {
+        isDraftInput.value = 'false';
+        
+        // Update beneficial owners JSON before submitting
+        updateBeneficialOwnersJson();
+        
+        form.submit();
+      }
+    });
+    
+    // Initialize form
+    initBeneficialOwners();
+    showStep(currentStep);
+    
+    // Add input event listeners to clear errors
+    document.querySelectorAll('input, select, textarea').forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.remove('border-red-500');
+        
+        // Find the error element for this input
+        const fieldName = this.name;
+        if (fieldName) {
+          const errorEl = document.getElementById(`error-${fieldName}`);
+          if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+          }
+        }
+      });
+    });
+    
+    // Handle file preview functionality
+    function handleFilePreview(fileInput, previewElement) {
+      if (!fileInput) return; // Skip if input element doesn't exist
+      
+      fileInput.addEventListener('change', function() {
+        const preview = document.getElementById(previewElement);
+        if (!preview) return; // Skip if preview element doesn't exist
+        
+        const previewImg = preview.querySelector('img');
+        const file = this.files[0];
+        
+        // Clear any validation styling
+        const errorId = 'error-' + this.name;
+        const errorElement = document.getElementById(errorId);
+        if (errorElement) {
+          errorElement.classList.add('hidden');
+        }
+        
+        if (file) {
+          const reader = new FileReader();
+          
+          reader.onload = function(e) {
+            const fileType = file.type;
+            
+            if (fileType.startsWith('image/')) {
+              // It's an image, show it directly
+              previewImg.src = e.target.result;
+              previewImg.style.display = 'block';
+              preview.classList.remove('hidden');
+            } else {
+              // For PDFs and other documents, show an icon
+              if (fileType === 'application/pdf') {
+                // Show PDF icon or placeholder
+                previewImg.src = '/static/images/pdf-icon.png';
+                if (!previewImg.src.endsWith('pdf-icon.png')) {
+                  // Fallback if the PDF icon isn't available
+                  previewImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNDY0IDEyOEgyNzJhOCA4IDAgMCAxLTgtOFYzMkg0OGExNiAxNiAwIDAgMC0xNiAxNnY0MTZhMTYgMTYgMCAwIDAgMTYgMTZoMzg0YTE2IDE2IDAgMCAwIDE2LTE2VjE0NGExNiAxNiAwIDAgMC0xNi0xNnpNMzUyIDM2OGExNiAxNiAwIDAgMS0xNiAxNkgxNzZhMTYgMTYgMCAwIDEtMTYtMTZ2LTE2YTE2IDE2IDAgMCAxIDE2LTE2aDE2MGExNiAxNiAwIDAgMSAxNiAxNnptMC05NmExNiAxNiAwIDAgMS0xNiAxNkgxNzZhMTYgMTYgMCAwIDEtMTYtMTZ2LTE2YTE2IDE2IDAgMCAxIDE2LTE2aDE2MGExNiAxNiAwIDAgMSAxNiAxNnpNMjY0IDY0VjBsOTYgOTZoLTY0VjE0NGExNiAxNiAwIDAgMS0xNiAxNkgxNjcuNzVhMTAgMTAgMCAwIDEtNy40Ny0xNi44N0wyMDggOTYuMjRBNDAuNjYgNDAuNjYgMCAwIDEgMjM4Ljg1IDgwSDI0OGExNiAxNiAwIDAgMSAxNiAxNnoiLz48L3N2Zz4=';
+                }
+              } else {
+                // Show generic document icon
+                previewImg.src = '/static/images/document-icon.png';
+                if (!previewImg.src.endsWith('document-icon.png')) {
+                  // Fallback if the document icon isn't available
+                  previewImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNDY0IDEyOEgyNzJhOCA4IDAgMCAxLTgtOFYzMkg0OGExNiAxNiAwIDAgMC0xNiAxNnY0MTZhMTYgMTYgMCAwIDAgMTYgMTZoMzg0YTE2IDE2IDAgMCAwIDE2LTE2VjE0NGExNiAxNiAwIDAgMC0xNi0xNnpNMzM2IDM1MnYzMkg4MHYtMzJ6bTAtODB2MzJIODB2LTMyem0tMTYwLTY0aDE2MHYzMkg4MHYtMzJ6TTI2NCA2NFYwbDk2IDk2aC02NHoiLz48L3N2Zz4=';
+                }
+              }
+              previewImg.style.display = 'block';
+              preview.classList.remove('hidden');
+            }
+          };
+          
+          reader.readAsDataURL(file);
+        } else {
+          // No file selected, hide preview
+          preview.classList.add('hidden');
+        }
+      });
+    }
+    
+    // Initialize file previews for document uploads
+    const registrationDocInput = document.querySelector('input[name="registration_document"]');
+    const taxDocInput = document.querySelector('input[name="tax_document"]');
+    
+    if (registrationDocInput) {
+      handleFilePreview(registrationDocInput, 'registration_document_preview');
+    }
+    
+    if (taxDocInput) {
+      handleFilePreview(taxDocInput, 'tax_document_preview');
+    }
+  });
+</script>
+{% endblock %} 

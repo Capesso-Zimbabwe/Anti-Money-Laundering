@@ -1,0 +1,1324 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100 p-6 text-sm">
+  <div class="w-full max-w-5xl bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-lg font-bold text-gray-800 text-center mb-6">
+      Register KYC Business Profile
+    </h2>
+    
+    <!-- Display Django messages -->
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="p-4 mb-2 text-sm {% if message.tags == 'success' %}text-green-700 bg-green-100{% elif message.tags == 'error' %}text-red-700 bg-red-100{% else %}text-gray-700 bg-gray-100{% endif %} rounded-lg" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <!-- Display form-wide errors if they exist -->
+    {% if form.errors %}
+      <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+        <p class="font-bold">There were errors in your submission. Please check the highlighted fields below:</p>
+        <ul class="mt-2 list-disc list-inside">
+          {% for field, errors in form.errors.items %}
+            {% if field != '__all__' %}
+              <li><strong>{{ field|title }}</strong>: {{ errors|join:", " }}</li>
+            {% endif %}
+          {% endfor %}
+          {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+    
+    <!-- Form Steps Progress Bar -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div id="step-1-indicator" class="flex flex-col items-center">
+          <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+          <span class="text-xs mt-1">Business Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-1-2"></div>
+        <div id="step-2-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">2</div>
+          <span class="text-xs mt-1">Identification</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-2-3"></div>
+        <div id="step-3-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">3</div>
+          <span class="text-xs mt-1">Contact Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-3-4"></div>
+        <div id="step-4-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">4</div>
+          <span class="text-xs mt-1">Financial Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-4-5"></div>
+        <div id="step-5-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">5</div>
+          <span class="text-xs mt-1">Banking</span>
+        </div>
+      </div>
+    </div>
+    
+    <form id="businessKycForm" method="POST" action="{% url 'kyc_app:register_kyc_business' %}" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="is_draft" id="is_draft" value="true">
+      <input type="hidden" name="current_step" id="current_step" value="1">
+      <input type="hidden" name="initial_step" id="initial_step" value="{{ initial_step }}">
+      <input type="hidden" id="beneficial_owners_data" value="{{ form.instance.beneficial_owners|default:'[]'|escapejs }}">
+      <input type="hidden" name="beneficial_owners" id="beneficial_owners_json" value="[]">
+      
+      <!-- Step 1: Business Information -->
+      <div id="step-1" class="bg-gray-100 p-4 rounded-md">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Business Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Business ID -->
+          <div>
+            <label for="{{ form.business_id.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business ID <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_id|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_id.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_id.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Business Name -->
+          <div>
+            <label for="{{ form.business_name.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_name|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_name.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_name.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Registration Date -->
+          <div>
+            <label for="{{ form.registration_date.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Registration Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.registration_date|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.registration_date.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.registration_date.errors.0 }}
+            </span>
+            {% endif %}
+            <small class="text-gray-500 text-xs">Format: YYYY-MM-DD</small>
+          </div>
+          <!-- Business Type -->
+          <div>
+            <label for="{{ form.business_type.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_type|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_type.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_type.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Industry Sector -->
+          <div>
+            <label for="{{ form.industry_sector.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Industry Sector <span class="text-red-500">*</span>
+            </label>
+            {{ form.industry_sector|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.industry_sector.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.industry_sector.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Business Website -->
+          <div>
+            <label for="{{ form.business_website.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Website
+            </label>
+            {{ form.business_website|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_website.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_website.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 2: Identification Documents -->
+      <div id="step-2" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Identification Documents</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Registration Number -->
+          <div>
+            <label for="{{ form.registration_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Registration Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.registration_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.registration_number.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.registration_number.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Tax ID Number -->
+          <div>
+            <label for="{{ form.tax_id_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Tax ID Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.tax_id_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.tax_id_number.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.tax_id_number.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Country of Registration -->
+          <div>
+            <label for="{{ form.registration_country.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Country of Registration <span class="text-red-500">*</span>
+            </label>
+            {{ form.registration_country|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.registration_country.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.registration_country.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- License Expiry Date -->
+          <div>
+            <label for="{{ form.license_expiry_date.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              License Expiry Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.license_expiry_date|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.license_expiry_date.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.license_expiry_date.errors.0 }}
+            </span>
+            {% endif %}
+            <small class="text-gray-500 text-xs">Format: YYYY-MM-DD</small>
+          </div>
+          <!-- Business Registration Document -->
+          <div class="col-span-2">
+            <label for="{{ form.registration_document.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Upload Business Registration Document
+            </label>
+            <div class="mt-1 flex flex-col">
+              <div class="flex items-center">
+                {{ form.registration_document|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|attr:"accept:.pdf,.jpg,.jpeg,.png" }}
+              </div>
+              <div id="registration_document_preview" class="mt-2 hidden">
+                <p class="text-xs text-gray-500 mb-1">Document Preview:</p>
+                <div class="border border-gray-200 rounded p-1 inline-block">
+                  <img src="" alt="Registration Document Preview" class="max-h-24 max-w-full">
+                </div>
+              </div>
+              <small class="text-gray-500 text-xs">Accepted formats: PDF, JPG, PNG - Max 10MB</small>
+              <span class="error-message text-red-500 text-xs {% if form.registration_document.errors %}visible{% else %}hidden{% endif %}" id="error-registration_document">
+                {% if form.registration_document.errors %}{{ form.registration_document.errors.0 }}{% endif %}
+              </span>
+            </div>
+          </div>
+
+          <!-- Tax Registration Document -->
+          <div class="col-span-2">
+            <label for="{{ form.tax_document.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Tax Registration Document
+            </label>
+            <div class="mt-1 flex flex-col">
+              <div class="flex items-center">
+                {{ form.tax_document|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|attr:"accept:.pdf,.jpg,.jpeg,.png" }}
+              </div>
+              <div id="tax_document_preview" class="mt-2 hidden">
+                <p class="text-xs text-gray-500 mb-1">Document Preview:</p>
+                <div class="border border-gray-200 rounded p-1 inline-block">
+                  <img src="" alt="Tax Document Preview" class="max-h-24 max-w-full">
+                </div>
+              </div>
+              <small class="text-gray-500 text-xs">Accepted formats: PDF, JPG, PNG - Max 10MB</small>
+              <span class="error-message text-red-500 text-xs {% if form.tax_document.errors %}visible{% else %}hidden{% endif %}" id="error-tax_document">
+                {% if form.tax_document.errors %}{{ form.tax_document.errors.0 }}{% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 3: Contact Information -->
+      <div id="step-3" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Contact Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Business Email -->
+          <div>
+            <label for="{{ form.business_email.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Email <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_email|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_email.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_email.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Business Phone Number -->
+          <div>
+            <label for="{{ form.business_phone.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Business Phone Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_phone|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_phone.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_phone.errors.0 }}
+            </span>
+            {% endif %}
+            <small class="text-gray-500 text-xs">Format: Include country code (e.g., +1234567890)</small>
+          </div>
+          <!-- Business Address -->
+          <div class="col-span-2">
+            <label for="{{ form.business_address.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+             Business Address <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_address|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_address.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_address.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- City -->
+          <div>
+            <label for="{{ form.business_city.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              City <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_city|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_city.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_city.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Country -->
+          <div>
+            <label for="{{ form.business_country.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Country <span class="text-red-500">*</span>
+            </label>
+            {{ form.business_country|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.business_country.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.business_country.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Ownership Structure & Financial Information -->
+      <div id="step-4" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Ownership & Financial Information</h3>
+        
+        <!-- Ownership Structure -->
+        <div class="mb-4">
+          <label for="{{ form.ownership_structure.id_for_label }}" class="block text-xs text-gray-700 font-semibold mb-2">
+            Ownership Structure <span class="text-red-500">*</span>
+          </label>
+          {{ form.ownership_structure|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+          {% if form.ownership_structure.errors %}
+          <span class="text-red-500 text-xs mt-1 block">
+            {{ form.ownership_structure.errors.0 }}
+          </span>
+          {% endif %}
+        </div>
+        
+        <!-- Beneficial Owner Section -->
+        <div id="beneficial_owners_section" class="mb-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-md font-semibold text-gray-700">Beneficial Owners</h4>
+            <button type="button" id="add_owner" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">+ Add Owner</button>
+          </div>
+          
+          <div class="beneficial-owner border border-gray-200 p-3 rounded mb-3">
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Owner Full Name -->
+              <div>
+                <label for="owner_name_1" class="block text-xs text-gray-700 font-semibold">
+                  Full Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="owner_name_1" name="beneficial_owners[0][full_name]" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+              </div>
+              <!-- Owner Nationality -->
+              <div>
+                <label for="owner_nationality_1" class="block text-xs text-gray-700 font-semibold">
+                  Nationality <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="owner_nationality_1" name="beneficial_owners[0][nationality]" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+              </div>
+              <!-- Owner ID Type -->
+              <div>
+                <label for="owner_id_type_1" class="block text-xs text-gray-700 font-semibold">
+                  ID Document Type <span class="text-red-500">*</span>
+                </label>
+                <select id="owner_id_type_1" name="beneficial_owners[0][id_document_type]" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+                  <option value="">Select ID Type</option>
+                  <option value="passport">Passport</option>
+                  <option value="national_id">National ID</option>
+                  <option value="drivers_license">Driver's License</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <!-- Owner ID Number -->
+              <div>
+                <label for="owner_id_number_1" class="block text-xs text-gray-700 font-semibold">
+                  ID Document Number <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="owner_id_number_1" name="beneficial_owners[0][id_document_number]" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+              </div>
+              <!-- Ownership Percentage -->
+              <div>
+                <label for="ownership_percentage_1" class="block text-xs text-gray-700 font-semibold">
+                  Ownership Percentage <span class="text-red-500">*</span>
+                </label>
+                <input type="number" id="ownership_percentage_1" name="beneficial_owners[0][ownership_percentage]" min="0" max="100" class="rounded-md border border-gray-300 p-1 w-full text-xs">
+              </div>
+              <!-- PEP Status -->
+              <div>
+                <label for="pep_status_1" class="block text-xs text-gray-700 font-semibold">
+                  PEP Status
+                </label>
+                <select id="pep_status_1" name="beneficial_owners[0][pep_status]" class="rounded-md border border-gray-300 p-1 text-xs w-full">
+                  <option value="no">Not a PEP</option>
+                  <option value="yes">Politically Exposed Person</option>
+                  <option value="relative">Relative of a PEP</option>
+                  <option value="associate">Close Associate of a PEP</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <!-- Annual Revenue -->
+          <div>
+            <label for="{{ form.annual_revenue.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Annual Revenue <span class="text-red-500">*</span>
+            </label>
+            <select name="annual_revenue" id="{{ form.annual_revenue.id_for_label }}" class="rounded-md border border-gray-300 p-2 w-full text-xs {% if form.annual_revenue.errors %}border-red-500 bg-red-50{% endif %}">
+              <option value="">Select Annual Revenue</option>
+              <option value="less_than_100k">Less than $100,000</option>
+              <option value="100k_500k">$100,000 - $500,000</option>
+              <option value="500k_1m">$500,000 - $1,000,000</option>
+              <option value="1m_5m">$1,000,000 - $5,000,000</option>
+              <option value="5m_10m">$5,000,000 - $10,000,000</option>
+              <option value="more_than_10m">More than $10,000,000</option>
+            </select>
+            {% if form.annual_revenue.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.annual_revenue.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          <!-- Source of Funds -->
+          <div>
+            <label for="{{ form.source_of_funds.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Primary Source of Funds <span class="text-red-500">*</span>
+            </label>
+            {{ form.source_of_funds|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.source_of_funds.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.source_of_funds.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <label for="{{ form.business_purpose.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+            Business Activities & Purpose <span class="text-red-500">*</span>
+          </label>
+          {{ form.business_purpose|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+          {% if form.business_purpose.errors %}
+          <span class="text-red-500 text-xs mt-1 block">
+            {{ form.business_purpose.errors.0 }}
+          </span>
+          {% endif %}
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mt-3">
+          <!-- Expected Transaction Volume -->
+          <div>
+            <label for="{{ form.transaction_volume.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Expected Monthly Transaction Volume <span class="text-red-500">*</span>
+            </label>
+            {{ form.transaction_volume|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.transaction_volume.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.transaction_volume.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Risk Assessment Fields -->
+        <div class="grid grid-cols-3 gap-4 mt-4">
+          <div>
+            <label for="{{ form.high_risk_jurisdiction.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              High Risk Jurisdiction
+            </label>
+            {{ form.high_risk_jurisdiction|add_class:"rounded-md border border-gray-300 p-1 text-xs" }}
+          </div>
+          <div>
+            <label for="{{ form.sanctions_history.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Sanctions History
+            </label>
+            {{ form.sanctions_history|add_class:"rounded-md border border-gray-300 p-1 text-xs" }}
+          </div>
+          <div>
+            <label for="{{ form.aml_policy.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Has AML Policy
+            </label>
+            {{ form.aml_policy|add_class:"rounded-md border border-gray-300 p-1 text-xs" }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 5: Banking Information -->
+      <div id="step-5" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Banking Information</h3>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Bank Name -->
+          <div>
+            <label for="{{ form.bank_name.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Bank Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.bank_name|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.bank_name.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.bank_name.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          
+          <!-- Account Number -->
+          <div>
+            <label for="{{ form.account_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.account_number.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.account_number.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          
+          <!-- Account Type -->
+          <div>
+            <label for="{{ form.account_type.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_type|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.account_type.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.account_type.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+          
+          <!-- SWIFT Code -->
+          <div>
+            <label for="{{ form.swift_code.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              SWIFT/BIC Code <span class="text-red-500">*</span>
+            </label>
+            {{ form.swift_code|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|add_error_class:"border-red-500 bg-red-50" }}
+            {% if form.swift_code.errors %}
+            <span class="text-red-500 text-xs mt-1 block">
+              {{ form.swift_code.errors.0 }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Compliance Officer -->
+        <div class="mt-4">
+          <label for="{{ form.compliance_officer.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+            Compliance Officer Name
+          </label>
+          {{ form.compliance_officer|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          <span class="error-message text-red-500 text-xs {% if form.compliance_officer.errors %}visible{% else %}hidden{% endif %}" id="error-compliance_officer">
+            {% if form.compliance_officer.errors %}{{ form.compliance_officer.errors.0 }}{% endif %}
+          </span>
+        </div>
+        
+        <!-- Declaration Checkboxes -->
+        <div class="mt-4 space-y-2">
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input id="declaration_accepted" name="declaration_accepted" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+            </div>
+            <div class="ml-3 text-sm">
+              <label for="declaration_accepted" class="font-medium text-gray-700">I declare that all information provided is accurate and complete.</label>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input id="consent_accepted" name="consent_accepted" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+            </div>
+            <div class="ml-3 text-sm">
+              <label for="consent_accepted" class="font-medium text-gray-700">I consent to the processing of this information for KYC/AML purposes.</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Form Navigation Buttons -->
+      <div class="flex justify-between mt-6">
+        <button 
+          type="button" 
+          id="prev-btn" 
+          class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 hidden"
+        >
+          Previous
+        </button>
+        <div>
+          <button
+            type="button"
+            id="save-draft-btn"
+            class="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 mr-2"
+          >
+            Save as Draft
+          </button>
+          <button 
+            type="button" 
+            id="next-btn" 
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Next
+          </button>
+          <button 
+            type="submit" 
+            id="submit-btn" 
+            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 hidden"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Countries data
+    const countries = [
+      {code: 'US', name: 'United States'},
+      {code: 'GB', name: 'United Kingdom'},
+      {code: 'CA', name: 'Canada'},
+      {code: 'AU', name: 'Australia'},
+      {code: 'DE', name: 'Germany'},
+      {code: 'FR', name: 'France'},
+      {code: 'JP', name: 'Japan'},
+      {code: 'CN', name: 'China'},
+      {code: 'IN', name: 'India'},
+      {code: 'BR', name: 'Brazil'},
+      {code: 'RU', name: 'Russia'},
+      {code: 'ZA', name: 'South Africa'},
+      {code: 'NG', name: 'Nigeria'},
+      {code: 'KE', name: 'Kenya'},
+      {code: 'GH', name: 'Ghana'},
+      {code: 'MX', name: 'Mexico'},
+      // Add more countries as needed
+    ];
+    
+    // Populate country dropdowns
+    function populateCountrySelects() {
+      // Get all select elements that are country fields
+      const countrySelects = document.querySelectorAll('select[name="business_country"], select[name="registration_country"]');
+      
+      countries.forEach(country => {
+        countrySelects.forEach(select => {
+          const option = document.createElement('option');
+          option.value = country.name;
+          option.textContent = country.name;
+          select.appendChild(option);
+        });
+      });
+      
+      // Also populate the countries for beneficial owners dropdown
+      const countriesOfOperationSelect = document.getElementById('countries_of_operation');
+      if (countriesOfOperationSelect) {
+        countries.forEach(country => {
+          const option = document.createElement('option');
+          option.value = country.code;
+          option.textContent = country.name;
+          countriesOfOperationSelect.appendChild(option);
+        });
+      }
+    }
+    
+    populateCountrySelects();
+    
+    // Pre-populate beneficial owners if editing a draft
+    function populateBeneficialOwners() {
+      // Check if there's beneficial owners data from the server
+      const beneficialOwnersData = document.getElementById('beneficial_owners_data');
+      if (!beneficialOwnersData || !beneficialOwnersData.value) return;
+      
+      try {
+        const ownersData = JSON.parse(beneficialOwnersData.value);
+        if (!Array.isArray(ownersData) || ownersData.length === 0) return;
+        
+        // First owner (already exists in the template)
+        const firstOwner = ownersData[0];
+        if (firstOwner) {
+          document.getElementById('owner_name_1').value = firstOwner.full_name || '';
+          document.getElementById('owner_nationality_1').value = firstOwner.nationality || '';
+          document.getElementById('owner_id_type_1').value = firstOwner.id_document_type || '';
+          document.getElementById('owner_id_number_1').value = firstOwner.id_document_number || '';
+          document.getElementById('ownership_percentage_1').value = firstOwner.ownership_percentage || '';
+          document.getElementById('pep_status_1').value = firstOwner.pep_status || 'no';
+        }
+        
+        // Add additional owners if there are more than one
+        for (let i = 1; i < ownersData.length; i++) {
+          // Trigger add owner button click
+          document.getElementById('add_owner').click();
+          
+          // Then set values for the new owner
+          const owner = ownersData[i];
+          document.getElementById(`owner_name_${i+1}`).value = owner.full_name || '';
+          document.getElementById(`owner_nationality_${i+1}`).value = owner.nationality || '';
+          document.getElementById(`owner_id_type_${i+1}`).value = owner.id_document_type || '';
+          document.getElementById(`owner_id_number_${i+1}`).value = owner.id_document_number || '';
+          document.getElementById(`ownership_percentage_${i+1}`).value = owner.ownership_percentage || '';
+          document.getElementById(`pep_status_${i+1}`).value = owner.pep_status || 'no';
+        }
+      } catch (e) {
+        console.error('Error parsing beneficial owners data:', e);
+      }
+    }
+    
+    // Multi-step form handling
+    // Initialize with step 1 or determine from errors
+    let currentStep = 1;
+    
+    // This hidden input will be populated server-side with the step that has errors
+    const initialStepInput = document.getElementById('initial_step');
+    if (initialStepInput && initialStepInput.value) {
+      currentStep = parseInt(initialStepInput.value) || 1;
+    }
+
+    const totalSteps = 5;
+    const form = document.getElementById('businessKycForm');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const saveDraftBtn = document.getElementById('save-draft-btn');
+    const currentStepInput = document.getElementById('current_step');
+    const isDraftInput = document.getElementById('is_draft');
+    
+    // Required fields by step
+    const requiredFields = {
+      1: ['business_id', 'business_name', 'registration_date', 'business_type', 'industry_sector'],
+      2: ['registration_number', 'tax_id_number', 'registration_country', 'license_expiry_date'],
+      3: ['business_email', 'business_phone', 'business_address', 'business_city', 'business_country'],
+      4: ['ownership_structure', 'annual_revenue', 'source_of_funds', 'business_purpose', 'transaction_volume'],
+      5: ['bank_name', 'account_number', 'account_type', 'swift_code']
+    };
+    
+    function updateProgressBar() {
+      // Update progress indicators
+      for (let i = 1; i <= totalSteps; i++) {
+        const indicator = document.getElementById(`step-${i}-indicator`);
+        const innerCircle = indicator.querySelector('div');
+        
+        if (i < currentStep) {
+          // Completed steps
+          indicator.classList.remove('opacity-50');
+          innerCircle.classList.remove('bg-gray-400');
+          innerCircle.classList.add('bg-green-600');
+        } else if (i === currentStep) {
+          // Current step
+          indicator.classList.remove('opacity-50');
+          innerCircle.classList.remove('bg-gray-400');
+          innerCircle.classList.add('bg-blue-600');
+        } else {
+          // Future steps
+          indicator.classList.add('opacity-50');
+          innerCircle.classList.remove('bg-blue-600', 'bg-green-600');
+          innerCircle.classList.add('bg-gray-400');
+        }
+      }
+      
+      // Update progress bars between steps
+      for (let i = 1; i < totalSteps; i++) {
+        const progressBar = document.getElementById(`progress-${i}-${i+1}`);
+        
+        if (i < currentStep) {
+          // Progress bars before current step
+          progressBar.classList.remove('bg-gray-300');
+          progressBar.classList.add('bg-green-600');
+        } else {
+          // Progress bars after or at current step
+          progressBar.classList.remove('bg-green-600');
+          progressBar.classList.add('bg-gray-300');
+        }
+      }
+    }
+    
+    function validateStep(step) {
+      let isValid = true;
+      
+      // Skip validation for draft saves
+      if (isDraftInput.value === 'true') {
+        return true;
+      }
+      
+      // Reset all error messages
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+      });
+      
+      // Remove all error styling from fields
+      document.querySelectorAll('input, select, textarea').forEach(field => {
+        field.classList.remove('border-red-500');
+      });
+      
+      // Validate required fields for the current step
+      requiredFields[step].forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (!field) return; // Skip if field doesn't exist
+        
+        const errorEl = document.getElementById(`error-${fieldName}`);
+        if (!errorEl) return; // Skip if error element doesn't exist
+        
+        if (!field.value.trim()) {
+          isValid = false;
+          errorEl.textContent = 'This field is required';
+          errorEl.classList.remove('hidden');
+          field.classList.add('border-red-500');
+        }
+      });
+      
+      // Registration date validation for step 1
+      if (step === 1) {
+        const regDateField = document.querySelector('[name="registration_date"]');
+        const regDateErrorEl = document.getElementById('error-registration_date');
+        
+        if (regDateField && regDateField.value) {
+          try {
+            // Check if date is valid
+            const regDateValue = regDateField.value;
+            const regDateParts = regDateValue.split('-');
+            
+            if (regDateParts.length !== 3 || 
+                isNaN(parseInt(regDateParts[0])) || 
+                isNaN(parseInt(regDateParts[1])) || 
+                isNaN(parseInt(regDateParts[2]))) {
+              isValid = false;
+              regDateErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+              regDateErrorEl.classList.remove('hidden');
+              regDateField.classList.add('border-red-500');
+            } else {
+              // Check if date is not in the future
+              const regDate = new Date(regDateField.value);
+              const now = new Date();
+              
+              if (regDate > now) {
+                isValid = false;
+                regDateErrorEl.textContent = 'Registration date cannot be in the future';
+                regDateErrorEl.classList.remove('hidden');
+                regDateField.classList.add('border-red-500');
+              }
+            }
+          } catch (e) {
+            isValid = false;
+            regDateErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+            regDateErrorEl.classList.remove('hidden');
+            regDateField.classList.add('border-red-500');
+          }
+        }
+      }
+      
+      // License expiry date validation for step 2
+      if (step === 2) {
+        const expiryField = document.querySelector('[name="license_expiry_date"]');
+        const expiryErrorEl = document.getElementById('error-license_expiry_date');
+        
+        if (expiryField && expiryField.value) {
+          try {
+            // Check if date is valid
+            const expiryValue = expiryField.value;
+            const expiryParts = expiryValue.split('-');
+            
+            if (expiryParts.length !== 3 || 
+                isNaN(parseInt(expiryParts[0])) || 
+                isNaN(parseInt(expiryParts[1])) || 
+                isNaN(parseInt(expiryParts[2]))) {
+              isValid = false;
+              expiryErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+              expiryErrorEl.classList.remove('hidden');
+              expiryField.classList.add('border-red-500');
+            } else {
+              // Check if expiry date is in the future
+              const expiry = new Date(expiryField.value);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              if (expiry < today) {
+                isValid = false;
+                expiryErrorEl.textContent = 'License has already expired';
+                expiryErrorEl.classList.remove('hidden');
+                expiryField.classList.add('border-red-500');
+              }
+            }
+          } catch (e) {
+            isValid = false;
+            expiryErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+            expiryErrorEl.classList.remove('hidden');
+            expiryField.classList.add('border-red-500');
+          }
+        }
+      }
+      
+      // Email validation for step 3
+      if (step === 3) {
+        const emailField = document.querySelector('[name="business_email"]');
+        const emailErrorEl = document.getElementById('error-business_email');
+        
+        if (emailField && emailField.value && !isValidEmail(emailField.value)) {
+          isValid = false;
+          emailErrorEl.textContent = 'Please enter a valid email address';
+          emailErrorEl.classList.remove('hidden');
+          emailField.classList.add('border-red-500');
+        }
+        
+        // Phone number basic validation
+        const phoneField = document.querySelector('[name="business_phone"]');
+        const phoneErrorEl = document.getElementById('error-business_phone');
+        
+        if (phoneField && phoneField.value && !/^\+?[0-9\s\-\(\)]{8,20}$/.test(phoneField.value)) {
+          isValid = false;
+          phoneErrorEl.textContent = 'Please enter a valid phone number';
+          phoneErrorEl.classList.remove('hidden');
+          phoneField.classList.add('border-red-500');
+        }
+      }
+      
+      // Check beneficial owners in step 4
+      if (step === 4 && document.querySelector('.beneficial-owner')) {
+        const nameField = document.getElementById('owner_name_1');
+        if (nameField && !nameField.value.trim()) {
+          isValid = false;
+          nameField.classList.add('border-red-500');
+        }
+      }
+      
+      // Check declaration in step 5
+      if (step === 5) {
+        const declarationCheck = document.getElementById('declaration_accepted');
+        const consentCheck = document.getElementById('consent_accepted');
+        
+        if (declarationCheck && !declarationCheck.checked) {
+          isValid = false;
+          declarationCheck.classList.add('border-red-500');
+        }
+        
+        if (consentCheck && !consentCheck.checked) {
+          isValid = false;
+          consentCheck.classList.add('border-red-500');
+        }
+      }
+      
+      return isValid;
+    }
+    
+    function isValidEmail(email) {
+      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(String(email).toLowerCase());
+    }
+    
+    // Focus on the first field with an error
+    function focusFirstErrorField() {
+      // Find all fields with errors
+      const errorFields = document.querySelectorAll('.border-red-500');
+      if (errorFields.length > 0) {
+        // Scroll to and focus the first field with an error
+        errorFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          errorFields[0].focus();
+        }, 500);
+      }
+    }
+    
+    // After showing the step, focus the first error field if any
+    function showStep(step) {
+      // Hide all steps
+      document.querySelectorAll('[id^="step-"]').forEach(el => {
+        if (el.id.startsWith('step-') && el.id.length === 7) { // Only match actual steps, not step indicators
+          el.classList.add('hidden');
+        }
+      });
+      
+      // Show current step
+      document.getElementById(`step-${step}`).classList.remove('hidden');
+      
+      // Update buttons
+      if (step === 1) {
+        prevBtn.classList.add('hidden');
+      } else {
+        prevBtn.classList.remove('hidden');
+      }
+      
+      if (step === totalSteps) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+      }
+      
+      // Update progress indicators
+      updateProgressBar();
+      
+      // Update current step in hidden field
+      currentStepInput.value = step;
+      
+      // Focus the first error field in this step if any
+      setTimeout(focusFirstErrorField, 100);
+    }
+    
+    // Handle additional beneficial owners
+    let ownerCount = 1;
+    
+    // Add owner button functionality
+    const addOwnerBtn = document.getElementById('add_owner');
+    if (addOwnerBtn) {
+      addOwnerBtn.addEventListener('click', function() {
+        ownerCount++;
+        
+        // Clone the first owner section
+        const firstOwnerSection = document.querySelector('.beneficial-owner');
+        const newOwnerSection = firstOwnerSection.cloneNode(true);
+        
+        // Update IDs and names for the new section
+        newOwnerSection.querySelectorAll('input, select').forEach(input => {
+          const originalName = input.name;
+          const nameParts = originalName.match(/beneficial_owners\[(\d+)\]\[([^\]]+)\]/);
+          
+          if (nameParts && nameParts.length === 3) {
+            const fieldName = nameParts[2];
+            input.name = `beneficial_owners[${ownerCount-1}][${fieldName}]`;
+            
+            // Update ID as well
+            const originalId = input.id;
+            if (originalId) {
+              const idBase = originalId.replace(/_\d+$/, '');
+              input.id = `${idBase}_${ownerCount}`;
+              
+              // Also update the label's for attribute
+              const label = newOwnerSection.querySelector(`label[for="${originalId}"]`);
+              if (label) {
+                label.setAttribute('for', input.id);
+              }
+            }
+            
+            // Clear the value for new fields
+            input.value = '';
+          }
+        });
+        
+        // Add a title to the new section
+        const sectionTitle = document.createElement('h4');
+        sectionTitle.className = 'text-md font-semibold text-gray-700 mb-2';
+        sectionTitle.textContent = `Beneficial Owner #${ownerCount}`;
+        newOwnerSection.insertBefore(sectionTitle, newOwnerSection.firstChild);
+        
+        // Add a delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 mt-2';
+        deleteBtn.textContent = 'Remove Owner';
+        deleteBtn.addEventListener('click', function() {
+          newOwnerSection.remove();
+        });
+        newOwnerSection.appendChild(deleteBtn);
+        
+        // Add the new section to the DOM
+        const ownersSection = document.getElementById('beneficial_owners_section');
+        ownersSection.appendChild(newOwnerSection);
+      });
+    }
+    
+    // Button event listeners
+    nextBtn.addEventListener('click', function() {
+      if (validateStep(currentStep)) {
+        currentStep++;
+        showStep(currentStep);
+      }
+    });
+    
+    prevBtn.addEventListener('click', function() {
+      currentStep--;
+      showStep(currentStep);
+    });
+    
+    // Collect beneficial owners data before form submission
+    function collectBeneficialOwnersData() {
+      const ownersData = [];
+      const ownerSections = document.querySelectorAll('.beneficial-owner');
+      
+      ownerSections.forEach((section, index) => {
+        const fullNameField = section.querySelector('[name^="beneficial_owners"][name$="[full_name]"]');
+        if (fullNameField && fullNameField.value.trim()) {
+          const nationalityField = section.querySelector('[name$="[nationality]"]');
+          const idTypeField = section.querySelector('[name$="[id_document_type]"]');
+          const idNumberField = section.querySelector('[name$="[id_document_number]"]');
+          const percentageField = section.querySelector('[name$="[ownership_percentage]"]');
+          const pepStatusField = section.querySelector('[name$="[pep_status]"]');
+          
+          const ownerData = {
+            full_name: fullNameField.value.trim(),
+            nationality: nationalityField ? nationalityField.value.trim() : '',
+            id_document_type: idTypeField ? idTypeField.value : '',
+            id_document_number: idNumberField ? idNumberField.value.trim() : '',
+            ownership_percentage: percentageField ? percentageField.value : '',
+            pep_status: pepStatusField ? pepStatusField.value : 'no'
+          };
+          
+          ownersData.push(ownerData);
+        }
+      });
+      
+      // If no owners were added, create a default empty owner
+      if (ownersData.length === 0) {
+        ownersData.push({
+          full_name: '',
+          nationality: '',
+          id_document_type: '',
+          id_document_number: '',
+          ownership_percentage: '',
+          pep_status: 'no'
+        });
+      }
+      
+      // Update the hidden field with JSON data
+      document.getElementById('beneficial_owners_json').value = JSON.stringify(ownersData);
+      return ownersData.length > 0;
+    }
+    
+    // Update the form submission handlers
+    saveDraftBtn.addEventListener('click', function() {
+      isDraftInput.value = 'true';
+      // Collect beneficial owners data before submission
+      collectBeneficialOwnersData();
+      // No validation needed for draft save
+      form.submit();
+    });
+    
+    submitBtn.addEventListener('click', function() {
+      isDraftInput.value = 'false';
+      // Collect beneficial owners data before submission
+      collectBeneficialOwnersData();
+      if (validateStep(currentStep)) {
+        form.submit();
+      } else {
+        // Show validation failed message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg';
+        alertDiv.innerText = 'Please correct the highlighted errors before submitting.';
+        
+        // Insert before the form
+        form.parentNode.insertBefore(alertDiv, form);
+        
+        // Auto-scroll to the top where the message appears
+        window.scrollTo(0, 0);
+        
+        // Remove message after 5 seconds
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 5000);
+      }
+    });
+    
+    // Check if annual revenue is a valid choice - this needs to be fixed in the Annual Revenue field
+    function validateDropdownChoice(event) {
+      const field = event.target;
+      const selectedValue = field.value;
+      const errorSpan = field.parentNode.querySelector('.text-red-500');
+      
+      // If this is a select field with predefined choices (like annual_revenue)
+      if (field.tagName === 'SELECT' && field.options.length > 0) {
+        let isValid = false;
+        
+        // Check if the selected value is in the available options
+        for (let i = 0; i < field.options.length; i++) {
+          if (field.options[i].value === selectedValue && selectedValue !== '') {
+            isValid = true;
+            break;
+          }
+        }
+        
+        if (!isValid) {
+          field.classList.add('border-red-500', 'bg-red-50');
+          if (errorSpan) {
+            errorSpan.textContent = `Please select a valid option from the list.`;
+            errorSpan.classList.remove('hidden');
+          }
+          return false;
+        } else {
+          field.classList.remove('border-red-500', 'bg-red-50');
+          if (errorSpan) {
+            errorSpan.textContent = '';
+            errorSpan.classList.add('hidden');
+          }
+          return true;
+        }
+      }
+      return true;
+    }
+    
+    // Add input event listeners to clear errors and validate choices
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      // Clear error styling on input
+      input.addEventListener('input', function() {
+        this.classList.remove('border-red-500', 'bg-red-50');
+        const fieldName = this.name;
+        // Extract the base field name for array fields
+        const baseName = fieldName.replace(/\[\d+\]\[[^\]]+\]/, '');
+        const errorSpan = this.parentNode.querySelector('.text-red-500');
+        if (errorSpan) {
+          errorSpan.textContent = '';
+          errorSpan.classList.add('hidden');
+        }
+      });
+      
+      // For select fields, validate the choice is valid
+      if (input.tagName === 'SELECT') {
+        input.addEventListener('change', validateDropdownChoice);
+      }
+    });
+    
+    // Add a visual indicator to steps that have errors
+    function markStepsWithErrors() {
+      // Check if there are error indicators visible in each step
+      for (let i = 1; i <= totalSteps; i++) {
+        const stepDiv = document.getElementById(`step-${i}`);
+        const hasErrors = stepDiv.querySelectorAll('.text-red-500:not(.hidden)').length > 0;
+        
+        // If errors exist in this step, add a visual indicator
+        const stepIndicator = document.getElementById(`step-${i}-indicator`);
+        if (hasErrors) {
+          // Add red border to the step indicator
+          stepIndicator.querySelector('div').classList.add('ring-2', 'ring-red-500');
+          
+          // If the step isn't visible, we should add an error icon to the step indicator
+          if (stepDiv.classList.contains('hidden')) {
+            const errorIcon = document.createElement('div');
+            errorIcon.className = 'absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center';
+            errorIcon.innerHTML = '!';
+            errorIcon.style.fontSize = '10px';
+            errorIcon.style.color = 'white';
+            
+            // Only add if it doesn't already exist
+            if (!stepIndicator.querySelector('.absolute')) {
+              stepIndicator.style.position = 'relative';
+              stepIndicator.appendChild(errorIcon);
+            }
+          }
+        }
+      }
+    }
+    
+    // Find the first step with errors and navigate to it on page load
+    function findFirstStepWithErrors() {
+      for (let i = 1; i <= totalSteps; i++) {
+        const stepDiv = document.getElementById(`step-${i}`);
+        const hasErrors = stepDiv.querySelectorAll('.text-red-500:not(.hidden)').length > 0;
+        
+        if (hasErrors) {
+          return i;
+        }
+      }
+      return null; // No steps with errors found
+    }
+    
+    // Initialize form
+    // If there are errors, navigate to the first step with errors
+    const firstErrorStep = findFirstStepWithErrors();
+    if (firstErrorStep !== null) {
+      currentStep = firstErrorStep;
+    }
+    
+    showStep(currentStep);
+    
+    // If we're editing a draft, populate the beneficial owners
+    populateBeneficialOwners();
+    
+    // Mark steps with errors
+    markStepsWithErrors();
+    
+    // Document upload preview functionality
+    function handleFilePreview(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      
+      if (!input || !preview) return;
+      
+      input.addEventListener('change', function() {
+        const previewImg = preview.querySelector('img');
+        
+        if (this.files && this.files[0]) {
+          const file = this.files[0];
+          const fileReader = new FileReader();
+          
+          fileReader.onload = function(e) {
+            // Only show image preview for image files
+            if (file.type.match('image.*')) {
+              previewImg.src = e.target.result;
+            } else if (file.type === 'application/pdf') {
+              // Show PDF icon for PDF files
+              previewImg.src = '/static/images/pdf-icon.png';
+              // If the PDF icon is missing, use a data URI fallback
+              previewImg.onerror = function() {
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48cGF0aCBkPSJNMTgxLjkgMjU2LjFjLTUtMTYtNC45LTQ2LjktMi0xNjguNUM4Mi4zOCA3Ny44IDg0LjA5IDc1LjYgNzkuMDkgNjcuNUM3MS42NiA1My4zIDYzLjQ1IDQ5LjEgNDcuODcgNDlIMzZWMGgxOGMxNC41OCAwIDM0LjEgNTYuMTIgMTI3LjQgNTYuMTJoLjA4Yyc1LjgxIDAgOTkuMjYtMTYuOCAxMTUuMi02MS4yADUgMjAgMTUuMjIgMHoiLz48L3N2Zz4=';
+              };
+            } else {
+              // Show generic file icon for other file types
+              previewImg.src = '/static/images/file-icon.png';
+              // If the file icon is missing, use a data URI fallback
+              previewImg.onerror = function() {
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODQgNTEyIj48cGF0aCBkPSJNMzY5LjkgOTcuOUwyODYgMTRDMjc3IDUgMjY0LjgtMS41IDI1NiAwSDQ4QzIxLjUgMCAwIDIxLjUgMCA0OHY0MTZjMCAyNi41IDIxLjUgNDggNDggNDhoMjg4YzI2LjUgMCA0OC0yMS41IDQ4LTQ4VjEyOGMwLTYuNy0yLjQtMTMuMi02LjktMTguM3pNMzMyLjEgMTI4SDI1NlY1MS45bDc2IDc2LjF6TTQ4IDQ2NHYtNDE2aDk2SDUwMHgtMjU2VjEyOGg5NnYzMzZINDh6Ii8+PC9zdmc+';
+              };
+            }
+            preview.classList.remove('hidden');
+          };
+          
+          fileReader.readAsDataURL(this.files[0]);
+        } else {
+          preview.classList.add('hidden');
+        }
+      });
+    }
+    
+    // Initialize document preview handlers for registration and tax documents
+    handleFilePreview('{{ form.registration_document.id_for_label }}', 'registration_document_preview');
+    handleFilePreview('{{ form.tax_document.id_for_label }}', 'tax_document_preview');
+  });
+</script>
+{% endblock %}
+

@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}KYC Workflow Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">KYC Workflow Dashboard</h1>
+    <div class="flex space-x-2">
+      <a href="{% url 'kyc_app:register_kyc_profile' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+        <i class="fas fa-user-plus mr-2"></i> New KYC Profile
+      </a>
+      <a href="{% url 'kyc_app:bulk_import_profiles' %}" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
+        <i class="fas fa-file-import mr-2"></i> Bulk Import
+      </a>
+      <a href="{% url 'kyc_app:kyc_profile_drafts' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition">
+        <i class="fas fa-file-alt mr-2"></i> View Drafts
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistics Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-500">Total Profiles</p>
+          <p class="text-xl font-semibold text-gray-800">{{ total_profiles }}</p>
+        </div>
+        <div class="bg-blue-100 p-3 rounded-full text-blue-500">
+          <i class="fas fa-users text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ active_profiles }} active profiles</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-500">Pending Reviews</p>
+          <p class="text-xl font-semibold text-gray-800">{{ pending_reviews }}</p>
+        </div>
+        <div class="bg-yellow-100 p-3 rounded-full text-yellow-500">
+          <i class="fas fa-clipboard-check text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ high_risk_pending }} high risk profiles</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-500">Expiring Documents</p>
+          <p class="text-xl font-semibold text-gray-800">{{ expiring_docs }}</p>
+        </div>
+        <div class="bg-red-100 p-3 rounded-full text-red-500">
+          <i class="fas fa-calendar-times text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ expired_docs }} already expired</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-500">High Risk Profiles</p>
+          <p class="text-xl font-semibold text-gray-800">{{ high_risk_profiles }}</p>
+        </div>
+        <div class="bg-orange-100 p-3 rounded-full text-orange-500">
+          <i class="fas fa-exclamation-triangle text-xl"></i>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">{{ high_risk_percent }}% of total profiles</p>
+    </div>
+  </div>
+
+  <!-- KYC Kanban Board -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Draft Profiles -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="bg-gray-200 p-3 rounded-t-lg flex justify-between items-center">
+        <h3 class="font-medium text-gray-700">Draft Profiles ({{ draft_profiles|length }})</h3>
+        <a href="{% url 'kyc_app:kyc_profile_drafts' %}" class="text-sm text-blue-600 hover:text-blue-800">View All</a>
+      </div>
+      <div class="p-3 max-h-[400px] overflow-y-auto">
+        {% if draft_profiles %}
+          {% for profile in draft_profiles %}
+            <div class="bg-gray-50 p-3 rounded mb-2 border-l-4 border-blue-400">
+              <h4 class="font-medium text-gray-800">{{ profile.full_name }}</h4>
+              <p class="text-xs text-gray-500">ID: {{ profile.customer_id }}</p>
+              <div class="flex justify-between items-center mt-1 mb-2">
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">Draft</span>
+                <span class="text-xs text-gray-500">Created: {{ profile.created_at|date:"d M Y" }}</span>
+              </div>
+              
+              <!-- Progress Bar -->
+              <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ profile.completion_percentage }}%"></div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500">{{ profile.completion_percentage }}% complete</span>
+                <a href="{% url 'kyc_app:review_kyc_profile' profile.id %}" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">
+                  Resume
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center p-6 text-gray-500">
+            <i class="fas fa-file-alt text-gray-400 text-3xl mb-2"></i>
+            <p>No draft profiles</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Submitted Profiles -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="bg-blue-100 p-3 rounded-t-lg">
+        <h3 class="font-medium text-blue-700">Submitted Profiles ({{ submitted_profiles|length }})</h3>
+      </div>
+      <div class="p-3 max-h-[400px] overflow-y-auto">
+        {% if submitted_profiles %}
+          {% for profile in submitted_profiles %}
+            <div class="bg-blue-50 p-3 rounded mb-2 border-l-4 border-blue-400">
+              <h4 class="font-medium text-gray-800">{{ profile.kyc_profile.full_name|default:"Unknown" }}</h4>
+              <p class="text-xs text-gray-500">ID: {{ profile.kyc_profile.customer_id|default:"Unknown" }}</p>
+              <div class="flex justify-between items-center mt-1 mb-2">
+                <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded">Submitted</span>
+                <span class="text-xs text-gray-500">Submitted: {{ profile.updated_at|date:"d M Y" }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500">Days in state: {{ profile.days_in_current_state }}</span>
+                {% if profile.kyc_profile and profile.kyc_profile.id %}
+                <a href="{% url 'kyc_app:review_kyc_profile' profile.kyc_profile.id %}" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">
+                  Review
+                </a>
+                {% elif profile.business_kyc and profile.business_kyc.id %}
+                <a href="{% url 'kyc_app:review_kyc_business' profile.business_kyc.id %}" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">
+                  Review
+                </a>
+                {% else %}
+                <span class="bg-gray-400 text-white text-xs px-3 py-1 rounded">
+                  No Profile
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center p-6 text-gray-500">
+            <i class="fas fa-inbox text-gray-400 text-3xl mb-2"></i>
+            <p>No submitted profiles</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Profiles in Review -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="bg-yellow-100 p-3 rounded-t-lg">
+        <h3 class="font-medium text-yellow-700">In Review ({{ review_profiles|length }})</h3>
+      </div>
+      <div class="p-3 max-h-[400px] overflow-y-auto">
+        {% if review_profiles %}
+          {% for profile in review_profiles %}
+            <div class="bg-yellow-50 p-3 rounded mb-2 border-l-4 border-yellow-400">
+              <h4 class="font-medium text-gray-800">{{ profile.get_subject_name }}</h4>
+              <p class="text-xs text-gray-500">ID: {{ profile.get_subject_id }}</p>
+              <div class="flex justify-between items-center mt-1 mb-2">
+                <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">{{ profile.get_current_state_display }}</span>
+                <span class="text-xs text-gray-500">Updated: {{ profile.updated_at|date:"d M Y" }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-500">
+                  {% if profile.assigned_to %}
+                    Assigned to: {{ profile.assigned_to }}
+                  {% else %}
+                    Unassigned
+                  {% endif %}
+                </span>
+                {% if profile.kyc_profile and profile.kyc_profile.id %}
+                <a href="{% url 'kyc_app:review_kyc_profile' profile.kyc_profile.id %}" class="bg-yellow-600 text-white text-xs px-3 py-1 rounded hover:bg-yellow-700">
+                  Continue
+                </a>
+                {% elif profile.business_kyc and profile.business_kyc.id %}
+                <a href="{% url 'kyc_app:review_kyc_business' profile.business_kyc.id %}" class="bg-yellow-600 text-white text-xs px-3 py-1 rounded hover:bg-yellow-700">
+                  Continue
+                </a>
+                {% else %}
+                <span class="bg-gray-400 text-white text-xs px-3 py-1 rounded">
+                  No Profile
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center p-6 text-gray-500">
+            <i class="fas fa-search text-gray-400 text-3xl mb-2"></i>
+            <p>No profiles in review</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Statuses -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Approved Profiles -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="bg-green-100 p-3 rounded-t-lg">
+        <h3 class="font-medium text-green-700">Approved Profiles ({{ approved_profiles|length }})</h3>
+      </div>
+      <div class="p-3">
+        {% if approved_profiles %}
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                  <th class="px-4 py-2">Customer ID</th>
+                  <th class="px-4 py-2">Name</th>
+                  <th class="px-4 py-2">Approved Date</th>
+                  <th class="px-4 py-2">Next Review</th>
+                  <th class="px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                {% for profile in approved_profiles %}
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2">{{ profile.get_subject_id }}</td>
+                    <td class="px-4 py-2 font-medium">{{ profile.get_subject_name }}</td>
+                    <td class="px-4 py-2">{{ profile.approval_date|date:"d M Y" }}</td>
+                    <td class="px-4 py-2">
+                      {{ profile.next_review_date|date:"d M Y" }}
+                      {% if profile.next_review_date|date:"Y-m-d" < today %}
+                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded ml-1">Overdue</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                      {% if profile.kyc_profile and profile.kyc_profile.id %}
+                      <a href="{% url 'kyc_app:view_approval_reason' profile.kyc_profile.id %}" class="text-blue-600 hover:text-blue-800 mr-2">
+                        View Reason
+                      </a>
+                      <a href="{% url 'kyc_app:review_kyc_profile' profile.kyc_profile.id %}" class="text-blue-600 hover:text-blue-800">
+                        View Profile
+                      </a>
+                      {% elif profile.business_kyc and profile.business_kyc.id %}
+                      <a href="{% url 'kyc_app:view_approval_reason' profile.business_kyc.id %}?is_business=1" class="text-blue-600 hover:text-blue-800 mr-2">
+                        View Reason
+                      </a>
+                      <a href="{% url 'kyc_app:review_kyc_business' profile.business_kyc.id %}" class="text-blue-600 hover:text-blue-800">
+                        View Profile
+                      </a>
+                      {% else %}
+                      <span class="text-gray-400">No Profile</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center p-6 text-gray-500">
+            <i class="fas fa-check-circle text-gray-400 text-3xl mb-2"></i>
+            <p>No approved profiles</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Rejected Profiles -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="bg-red-100 p-3 rounded-t-lg">
+        <h3 class="font-medium text-red-700">Rejected Profiles ({{ rejected_profiles|length }})</h3>
+      </div>
+      <div class="p-3">
+        {% if rejected_profiles %}
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                  <th class="px-4 py-2">Customer ID</th>
+                  <th class="px-4 py-2">Name</th>
+                  <th class="px-4 py-2">Rejected Date</th>
+                  <th class="px-4 py-2">Reason</th>
+                  <th class="px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                {% for profile in rejected_profiles %}
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2">{{ profile.get_subject_id }}</td>
+                    <td class="px-4 py-2 font-medium">{{ profile.get_subject_name }}</td>
+                    <td class="px-4 py-2">{{ profile.updated_at|date:"d M Y" }}</td>
+                    <td class="px-4 py-2">
+                      {% if profile.kyc_profile and profile.kyc_profile.id %}
+                      <a href="{% url 'kyc_app:view_rejection_reason' profile.kyc_profile.id %}" class="text-blue-600 hover:text-blue-800">
+                        View Reason
+                      </a>
+                      {% elif profile.business_kyc and profile.business_kyc.id %}
+                      <a href="{% url 'kyc_app:view_rejection_reason' profile.business_kyc.id %}?is_business=1" class="text-blue-600 hover:text-blue-800">
+                        View Reason
+                      </a>
+                      {% else %}
+                      <span class="text-gray-400">No Reason</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                      {% if profile.kyc_profile and profile.kyc_profile.id %}
+                      <a href="{% url 'kyc_app:review_kyc_profile' profile.kyc_profile.id %}" class="text-blue-600 hover:text-blue-800">
+                        View Profile
+                      </a>
+                      {% elif profile.business_kyc and profile.business_kyc.id %}
+                      <a href="{% url 'kyc_app:review_kyc_business' profile.business_kyc.id %}" class="text-blue-600 hover:text-blue-800">
+                        View Profile
+                      </a>
+                      {% else %}
+                      <span class="text-gray-400">No Profile</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center p-6 text-gray-500">
+            <i class="fas fa-times-circle text-gray-400 text-3xl mb-2"></i>
+            <p>No rejected profiles</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activities -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Recent Activities</h2>
+    
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+            <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% if recent_activities %}
+            {% for activity in recent_activities %}
+              <tr class="hover:bg-gray-50">
+                <td class="py-2 px-4 text-sm text-gray-500">{{ activity.timestamp|date:"M d, Y H:i" }}</td>
+                <td class="py-2 px-4">
+                  {% if activity.is_business %}
+                    <span class="bg-indigo-100 text-indigo-600 text-xs px-2 py-1 rounded">Business</span>
+                  {% else %}
+                    <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded">Individual</span>
+                  {% endif %}
+                </td>
+                <td class="py-2 px-4 text-sm font-medium text-gray-800">{{ activity.profile_name }}</td>
+                <td class="py-2 px-4 text-sm text-gray-500">{{ activity.description }}</td>
+                <td class="py-2 px-4">
+                  <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded">{{ activity.status }}</span>
+                </td>
+                <td class="py-2 px-4 text-xs text-gray-500">{{ activity.user }}</td>
+                <td class="py-2 px-4">
+                  <button class="text-xs text-blue-600 hover:text-blue-700 hover:underline focus:outline-none">
+                    View
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="py-6 text-center text-gray-500">No recent activities</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltip functionality for rejection reasons if needed
+    const reasonButtons = document.querySelectorAll('[title]');
+    // Implement tooltips with JavaScript if needed
+    // This depends on what tooltip library you're using with Tailwind
+  });
+</script>
+{% endblock %}

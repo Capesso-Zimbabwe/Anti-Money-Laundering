@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="flex flex-col items-center min-h-screen bg-gray-100 p-6">
+    <div class="w-full max-w-6xl">
+        
+       <!-- AML Trigger Button -->
+       <div class="flex items-center justify-between mb-4 w-full">
+           <h2 class="text-2xl font-bold text-gray-800">
+               Run AML Screening
+           </h2>
+           <button
+               id="runScreening"
+               class="px-6 py-3 bg-[#f68430] text-white font-semibold rounded-lg hover:bg-orange-300 transition"
+           >
+               Run Screening
+           </button>
+       </div>
+
+       <!-- Loader (Hidden initially) -->
+       <div id="loader" class="hidden flex justify-center mt-4">
+           <div class="animate-spin rounded-full h-8 w-8 border-b-4 border-gray-700"></div>
+           <p class="ml-2 text-gray-700">Running screening...</p>
+       </div>
+
+       <!-- Results Display (Status & Count) -->
+       <div id="results" class="hidden bg-white shadow-md rounded-lg p-6 mt-6 text-center">
+           <p class="text-lg font-semibold text-gray-700">
+               <span id="status" class="font-bold text-blue-600"></span>
+           </p>
+           <p class="text-lg font-semibold text-gray-700">
+               <span id="count" class="font-bold text-green-600"></span>
+           </p>
+       </div>
+
+       <!-- Suspicious Transactions Table (Shown if show_table=1) -->
+       {% if show_table %}
+       <div id="suspicious-transactions" class="bg-white shadow-md rounded-lg p-6 mt-6">
+           <h3 class="text-xl font-semibold text-gray-700 mb-4">
+               Suspicious Transactions
+           </h3>
+
+           <!-- Table -->
+           <div class="overflow-x-auto">
+               <table class="w-full border-collapse border border-gray-300">
+                   <thead>
+                       <tr class="bg-gray-200 text-gray-700">
+                           <th class="p-3 border border-gray-300">Txn ID</th>
+                           <th class="p-3 border border-gray-300">Customer Name</th>
+                           <th class="p-3 border border-gray-300">Risk Level</th>
+                           <th class="p-3 border border-gray-300">Flagged Reason</th>
+                           <th class="p-3 border border-gray-300">Reviewed By</th>
+                           <th class="p-3 border border-gray-300">Review Notes</th>
+                           <th class="p-3 border border-gray-300">Created At</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       {% for stxn in page_obj %}
+                       <tr class="border border-gray-300 text-gray-700 hover:bg-gray-100">
+                           <td class="p-3 border border-gray-300">
+                               {{ stxn.transaction.id }}
+                           </td>
+                           <td class="p-3 border border-gray-300">
+                               {{ stxn.customer_name }}
+                           </td>
+                           <td
+                               class="p-3 border border-gray-300 {% if stxn.risk_level == 'High' %}text-red-500{% elif stxn.risk_level == 'Medium' %}text-yellow-500{% else %}text-green-500{% endif %} font-bold"
+                           >
+                               {{ stxn.risk_level }}
+                           </td>
+                           <td class="p-3 border border-gray-300">
+                               {{ stxn.flagged_reason }}
+                           </td>
+                           <td class="p-3 border border-gray-300">
+                               {{ stxn.reviewed_by|default:"N/A" }}
+                           </td>
+                           <td class="p-3 border border-gray-300">
+                               {{ stxn.review_notes|default:"No notes" }}
+                           </td>
+                           <td class="p-3 border border-gray-300">
+                               {{ stxn.created_at }}
+                           </td>
+                       </tr>
+                       {% empty %}
+                       <tr>
+                           <td colspan="7" class="text-center text-gray-500 p-4">
+                               No suspicious transactions found.
+                           </td>
+                       </tr>
+                       {% endfor %}
+                   </tbody>
+               </table>
+           </div>
+
+           <!-- Pagination -->
+           <div class="mt-4 flex justify-between items-center">
+               {% if page_obj.has_previous %}
+                   <a
+                       href="?page=1&show_table=1"
+                       class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                   >
+                       First
+                   </a>
+                   <a
+                       href="?page={{ page_obj.previous_page_number }}&show_table=1"
+                       class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                   >
+                       Previous
+                   </a>
+               {% endif %}
+
+               <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+               {% if page_obj.has_next %}
+                   <a
+                       href="?page={{ page_obj.next_page_number }}&show_table=1"
+                       class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                   >
+                       Next
+                   </a>
+                   <a
+                       href="?page={{ page_obj.paginator.num_pages }}&show_table=1"
+                       class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+                   >
+                       Last
+                   </a>
+               {% endif %}
+           </div>
+       </div>
+       {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Click: Run Screening
+        document.getElementById("runScreening").addEventListener("click", function () {
+            document.getElementById("loader").classList.remove("hidden");
+            document.getElementById("results").classList.add("hidden");
+
+            fetch("{% url 'run_aml_screening' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loader, show results
+                document.getElementById("loader").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+                document.getElementById("status").textContent = data.status;
+                document.getElementById("count").textContent = data.transactions_checked;
+
+                // Auto-redirect to show table
+                window.location.href = "?show_table=1";
+            })
+            .catch(error => {
+                document.getElementById("loader").classList.add("hidden");
+                alert("Error running AML screening.");
+            });
+        });
+    });
+</script>
+
+<script>
+    // Function to refresh the suspicious transactions table every second
+    function refreshSuspiciousTransactions() {
+        // Only refresh if the table is displayed (i.e. if show_table is enabled)
+        if(document.getElementById("suspicious-transactions")) {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the returned HTML and extract the updated table content
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+                    const updatedTable = doc.getElementById("suspicious-transactions");
+                    if (updatedTable) {
+                        document.getElementById("suspicious-transactions").innerHTML = updatedTable.innerHTML;
+                    }
+                })
+                .catch(error => console.error("Error refreshing suspicious transactions:", error));
+        }
+    }
+    // Set the interval to refresh every 1000 milliseconds (1 second)
+    setInterval(refreshSuspiciousTransactions, 1000);
+</script>
+
+<script>
+    // Optional: Function to call an AML screening AJAX endpoint (if needed)
+    function callAmlScreening() {
+      fetch("{% url 'run_aml_screening_ajax' %}")
+        .then(response => response.json())
+        .then(data => {
+          console.log("AML screening result:", data);
+          // Optionally update the UI based on this data
+        })
+        .catch(error => console.error("Error running AML screening:", error));
+    }
+  
+    setInterval(callAmlScreening, 1000);
+</script>
+{% endblock %}

@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ business.business_name }} - Documents{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb navigation -->
+    <nav class="flex mb-5" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'dashboard' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                    Home
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                    <a href="{% url 'kyc_app:browse_documents' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Document Browser</a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 truncate">{{ business.business_name }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">{{ business.business_name }}</h1>
+            <p class="text-gray-600">Business ID: {{ business.business_id }}</p>
+        </div>
+        <div class="flex gap-3">
+            {% if business.pk %}
+            <a href="{% url 'kyc_app:review_kyc_business' business_id=business.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                View Business Profile
+            </a>
+            {% endif %}
+            <a href="{% url 'kyc_app:browse_documents' %}" class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Documents
+            </a>
+        </div>
+    </div>
+
+    <!-- Business details card -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-xl font-medium text-gray-800">Business Information</h2>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Business Name</p>
+                    <p class="mt-1">{{ business.business_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Business ID</p>
+                    <p class="mt-1">{{ business.business_id }}</p>
+                </div>
+                {% if business.registration_number %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Registration Number</p>
+                    <p class="mt-1">{{ business.registration_number }}</p>
+                </div>
+                {% endif %}
+                {% if business.tax_id_number %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Tax ID Number</p>
+                    <p class="mt-1">{{ business.tax_id_number }}</p>
+                </div>
+                {% endif %}
+                {% if business.registration_country %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Registration Country</p>
+                    <p class="mt-1">{{ business.registration_country }}</p>
+                </div>
+                {% endif %}
+                {% if business.business_email %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Business Email</p>
+                    <p class="mt-1">{{ business.business_email }}</p>
+                </div>
+                {% endif %}
+                {% if business.business_phone %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Business Phone</p>
+                    <p class="mt-1">{{ business.business_phone }}</p>
+                </div>
+                {% endif %}
+                {% if business.business_address %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Business Address</p>
+                    <p class="mt-1">{{ business.business_address }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Business documents -->
+    <h2 class="text-2xl font-bold mb-6">Documents</h2>
+
+    <!-- List of documents -->
+    {% if business.documents.all %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-800">All Documents</h3>
+            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ business.documents.all|length }} document{{ business.documents.all|length|pluralize }}</span>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+            {% for document in business.documents.all %}
+            <div class="px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        {% if document.document_file.url|slice:"-4:" == ".pdf" %}
+                        <!-- PDF Icon -->
+                        <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-red-100 text-red-500">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <text x="8.5" y="17" font-family="sans-serif" font-size="6" font-weight="bold" fill="white">PDF</text>
+                            </svg>
+                        </div>
+                        {% elif document.document_file.url|slice:"-3:" in "jpg,png,gif" %}
+                        <!-- Image Icon -->
+                        <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-blue-100 text-blue-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        {% else %}
+                        <!-- Generic Document Icon -->
+                        <div class="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">{{ document.get_document_type_display }}</h4>
+                        <p class="text-xs text-gray-500">Uploaded on {{ document.upload_date|date:"F j, Y" }}</p>
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            <!-- Status Badge -->
+                            {% if document.status == 'PENDING' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Pending
+                            </span>
+                            {% elif document.status == 'VERIFIED' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Verified
+                            </span>
+                            {% elif document.status == 'REJECTED' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Rejected
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex mt-3 sm:mt-0">
+                    <a href="{% url 'kyc_app:view_document' document_id=document.id %}" class="bg-blue-50 hover:bg-blue-100 text-blue-600 py-1 px-3 rounded-full text-sm mr-2">
+                        View
+                    </a>
+                    <a href="{{ document.document_file.url }}" download class="bg-gray-50 hover:bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-sm">
+                        Download
+                    </a>
+                    {% if request.user.is_staff and document.status == 'PENDING' %}
+                    <a href="{% url 'kyc_app:verify_document' document.id %}" class="bg-green-50 hover:bg-green-100 text-green-600 py-1 px-3 rounded-full text-sm ml-2">
+                        Verify
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-gray-50 rounded-lg p-8 text-center mb-8">
+        <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">No Documents Found</h3>
+        <p class="text-gray-500 mb-4">
+            This business does not have any documents uploaded yet.
+        </p>
+        <p class="text-sm text-gray-600">
+            Use the upload form below to add business documents for KYC verification.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Upload Document Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-blue-600 text-white px-6 py-4">
+            <h2 class="text-xl font-medium">Upload New Document</h2>
+            <p class="text-sm text-blue-100 mt-1">Add verification documents for this business</p>
+        </div>
+        <div class="px-6 py-6">
+            <form method="post" action="{% url 'kyc_app:upload_business_document' business_id=business.business_id %}" enctype="multipart/form-data" class="space-y-5">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="document_type" class="block text-sm font-medium text-gray-700 mb-1">Document Type*</label>
+                        <select id="document_type" name="document_type" class="rounded-md border border-gray-300 p-2 w-full shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <option value="registration_certificate">Registration Certificate</option>
+                            <option value="tax_certificate">Tax Certificate</option>
+                            <option value="business_plan">Business Plan</option>
+                            <option value="financial_statement">Financial Statement</option>
+                            <option value="owner_id">Owner ID Document</option>
+                            <option value="other">Other Document</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                        <input type="text" id="description" name="description" class="rounded-md border border-gray-300 p-2 w-full shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" placeholder="Brief description of this document">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="document_file" class="block text-sm font-medium text-gray-700 mb-1">Document File*</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-400 transition-colors">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="document_file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                                    <span>Upload a file</span>
+                                    <input id="document_file" name="document_file" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                PDF, PNG, JPG, GIF up to 10MB
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <div class="text-sm text-gray-500">
+                        <span class="text-red-500">*</span> Required fields
+                    </div>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Upload Document
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if business.workflow_state.state %}
+    <!-- KYC Workflow State -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-xl font-medium text-gray-800">KYC Workflow Status</h2>
+        </div>
+        <div class="px-6 py-4">
+            <div class="flex items-center">
+                <div class="mr-4">
+                    {% if business.workflow_state.state == 'APPROVED' %}
+                    <div class="p-2 bg-green-100 text-green-600 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    {% elif business.workflow_state.state == 'REJECTED' %}
+                    <div class="p-2 bg-red-100 text-red-600 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                    {% elif business.workflow_state.state == 'SUBMITTED' %}
+                    <div class="p-2 bg-blue-100 text-blue-600 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    {% elif business.workflow_state.state == 'DRAFT' %}
+                    <div class="p-2 bg-gray-100 text-gray-600 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </div>
+                    {% else %}
+                    <div class="p-2 bg-yellow-100 text-yellow-600 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="font-medium">
+                        {% if business.workflow_state.state == 'APPROVED' %}
+                        Approved
+                        {% elif business.workflow_state.state == 'REJECTED' %}
+                        Rejected
+                        {% elif business.workflow_state.state == 'SUBMITTED' %}
+                        Submitted for Review
+                        {% elif business.workflow_state.state == 'DRAFT' %}
+                        Draft
+                        {% else %}
+                        {{ business.workflow_state.state|title }}
+                        {% endif %}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        Last updated: {{ business.workflow_state.updated_at|date:"F j, Y, g:i a" }}
+                    </p>
+                </div>
+            </div>
+            
+            {% if business.workflow_state.notes %}
+            <div class="mt-4 bg-gray-50 p-3 rounded-md">
+                <p class="text-sm font-medium text-gray-700">Review Notes:</p>
+                <p class="text-sm text-gray-600 mt-1">{{ business.workflow_state.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

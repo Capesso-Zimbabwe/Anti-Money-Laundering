@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+{% load kyc_tags %}
+
+{% block title %}Approval Details - {{ profile.full_name }}{% endblock %}
+
+{% block content %}
+<div class="py-6 px-4 sm:px-6 lg:px-8 mx-auto max-w-6xl">
+    <div class="mb-6">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-blue-600 inline-flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <a href="{% url 'kyc_app:kyc_workflow_dashboard' %}" class="text-gray-700 hover:text-blue-600 ml-1 md:ml-2 text-sm font-medium">KYC Workflow</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-gray-500 ml-1 md:ml-2 text-sm font-medium">Approval Details</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-lg overflow-hidden mb-8">
+        <div class="bg-green-600 text-white px-5 py-4">
+            <h1 class="text-xl font-semibold">Profile Approval Details</h1>
+        </div>
+
+        <div class="p-5">
+            <div class="space-y-6">
+                <!-- Profile Information -->
+                <div class="border-b border-gray-200 pb-5">
+                    <h2 class="text-lg font-medium text-gray-900">Customer Information</h2>
+                    <dl class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Customer ID</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.customer_id }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.full_name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Date of Birth</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.date_of_birth|date:"d M Y" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Approval Date</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ workflow_state.updated_at|date:"d M Y H:i" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">ID Document</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.id_document_type }} - {{ profile.id_document_number }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Nationality</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ profile.nationality }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <!-- Approval Information -->
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-md">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-green-800">Profile was approved</h3>
+                            <div class="mt-2 text-sm text-green-700">
+                                <p>This customer profile has been reviewed and approved for onboarding.</p>
+                                {% if test_result.risk_level == 'High' %}
+                                <p class="mt-1"><strong>Note:</strong> This high-risk profile was approved with enhanced due diligence requirements.</p>
+                                {% elif test_result.politically_exposed_person %}
+                                <p class="mt-1"><strong>Note:</strong> This profile was approved with PEP monitoring requirements.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviewer's Notes -->
+                {% if workflow_state.history %}
+                <div class="border-t border-gray-200 pt-5">
+                    <h2 class="text-lg font-medium text-gray-900">Reviewer Notes</h2>
+                    {% for entry in workflow_state.history %}
+                        {% if entry.to_state == "APPROVED" and entry.notes %}
+                        <div class="mt-3 bg-gray-50 p-4 rounded-md">
+                            <p class="text-sm text-gray-700">{{ entry.notes }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Approved by {{ entry.by_user }} on {{ entry.timestamp|date:"d M Y H:i" }}</p>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Screening Results (if available) -->
+                {% if test_result %}
+                <div class="border-t border-gray-200 pt-5">
+                    <h2 class="text-lg font-medium text-gray-900">Screening Results</h2>
+                    <dl class="mt-3 space-y-3">
+                        {% if test_result.sanctions_list_check %}
+                        <div class="bg-red-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-red-800">Sanctions List Match</dt>
+                            <dd class="mt-1 text-sm text-red-700">
+                                <p>Customer appears on one or more sanctions lists, but was approved after enhanced due diligence:</p>
+                                {% if test_result.sanction_details %}
+                                <ul class="list-disc pl-5 mt-1 space-y-1">
+                                    {% for sanction in test_result.sanction_details %}
+                                    <li>{{ sanction.list_name }} - {{ sanction.match_date|date:"d M Y" }}{% if sanction.notes %} - {{ sanction.notes }}{% endif %}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                {% if test_result.sanctions_resolution_details %}
+                                <p class="mt-2 font-medium">Resolution:</p>
+                                <p>{{ test_result.sanctions_resolution_details }}</p>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if test_result.politically_exposed_person %}
+                        <div class="bg-yellow-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-yellow-800">Politically Exposed Person</dt>
+                            <dd class="mt-1 text-sm text-yellow-700">
+                                <p>Customer is identified as a politically exposed person. Enhanced due diligence was performed.</p>
+                                {% if test_result.pep_details %}
+                                <p class="mt-1"><strong>Position:</strong> {{ test_result.pep_details.position }}</p>
+                                <p><strong>Country:</strong> {{ test_result.pep_details.country }}</p>
+                                {% if test_result.pep_details.notes %}
+                                <p><strong>Notes:</strong> {{ test_result.pep_details.notes }}</p>
+                                {% endif %}
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if test_result.suspicious_activity_flag %}
+                        <div class="bg-orange-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-orange-800">Suspicious Activity</dt>
+                            <dd class="mt-1 text-sm text-orange-700">
+                                <p>Suspicious activity was detected but ruled as false positive or properly mitigated:</p>
+                                {% if test_result.suspicious_activity_details %}
+                                <ul class="list-disc pl-5 mt-1 space-y-1">
+                                    {% for activity in test_result.suspicious_activity_details %}
+                                    <li>{{ activity.activity_type }} - {{ activity.detection_date|date:"d M Y" }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                {% if test_result.suspicious_activity_resolution %}
+                                <p class="mt-2 font-medium">Resolution:</p>
+                                <p>{{ test_result.suspicious_activity_resolution }}</p>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if test_result.aml_risk_factors %}
+                        <div class="bg-orange-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-orange-800">AML Risk Factors</dt>
+                            <dd class="mt-1 text-sm text-orange-700">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    {% for factor in test_result.aml_risk_factors %}
+                                    <li>{{ factor }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% if test_result.aml_risk_resolution %}
+                                <p class="mt-2 font-medium">Risk Mitigation:</p>
+                                <p>{{ test_result.aml_risk_resolution }}</p>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if test_result.adverse_media %}
+                        <div class="bg-yellow-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-yellow-800">Adverse Media</dt>
+                            <dd class="mt-1 text-sm text-yellow-700">
+                                <p>Adverse media was found but assessed as not relevant or properly mitigated:</p>
+                                {% if test_result.adverse_media_details %}
+                                <ul class="list-disc pl-5 mt-1 space-y-1">
+                                    {% for item in test_result.adverse_media_details %}
+                                    <li>{{ item.title }} - {{ item.publication_date|date:"d M Y" }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                {% if test_result.adverse_media_resolution %}
+                                <p class="mt-2 font-medium">Assessment:</p>
+                                <p>{{ test_result.adverse_media_resolution }}</p>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if not test_result.sanctions_list_check and not test_result.politically_exposed_person and not test_result.suspicious_activity_flag and not test_result.adverse_media %}
+                        <div class="bg-green-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-green-800">Clean Screening</dt>
+                            <dd class="mt-1 text-sm text-green-700">No negative findings were detected during screening.</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="bg-gray-50 p-3 rounded-md">
+                            <dt class="text-sm font-medium text-gray-800">Risk Level</dt>
+                            <dd class="mt-1 text-sm 
+                                {% if test_result.risk_level == 'High' %}text-red-700
+                                {% elif test_result.risk_level == 'Medium' %}text-yellow-700
+                                {% else %}text-green-700{% endif %}">
+                                {{ test_result.risk_level }}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+                {% endif %}
+
+                <!-- Document Verification Status -->
+                <div class="border-t border-gray-200 pt-5">
+                    <h2 class="text-lg font-medium text-gray-900">Document Verification</h2>
+                    <div class="mt-3 bg-green-50 p-4 rounded-md">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <p class="text-sm text-green-700">Customer documents were successfully verified.</p>
+                        </div>
+                        
+                        {% if profile.verification_notes %}
+                        <div class="mt-3 text-sm text-green-700">
+                            <p><strong>Notes:</strong> {{ profile.verification_notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Due Diligence Measures (if high risk) -->
+                {% if test_result.risk_level == 'High' or test_result.politically_exposed_person %}
+                <div class="border-t border-gray-200 pt-5">
+                    <h2 class="text-lg font-medium text-gray-900">Enhanced Due Diligence</h2>
+                    <div class="mt-3 bg-yellow-50 p-4 rounded-md">
+                        <p class="text-sm text-yellow-700">
+                            This profile was approved despite higher risk factors. The following enhanced due diligence measures should be applied:
+                        </p>
+                        <ul class="mt-2 list-disc pl-5 text-sm text-yellow-700 space-y-1">
+                            <li>More frequent transaction monitoring (monthly review)</li>
+                            <li>Regular re-screening (at least quarterly)</li>
+                            <li>Ongoing adverse media monitoring</li>
+                            <li>Senior management approval for transactions over threshold</li>
+                            <li>Annual review of customer relationship</li>
+                            {% if test_result.additional_edd_measures %}
+                                {% for measure in test_result.additional_edd_measures %}
+                                <li>{{ measure }}</li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                        
+                        {% if test_result.edd_justification %}
+                        <div class="mt-3 p-3 bg-white rounded-md">
+                            <p class="text-sm font-medium text-gray-700">Justification for Approval:</p>
+                            <p class="text-sm text-gray-600 mt-1">{{ test_result.edd_justification }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Workflow History -->
+                <div class="border-t border-gray-200 pt-5">
+                    <h2 class="text-lg font-medium text-gray-900">Workflow History</h2>
+                    {% if workflow_state.history %}
+                    <div class="mt-3">
+                        <div class="flow-root">
+                            <ul class="-my-5 divide-y divide-gray-200">
+                                {% for entry in workflow_state.history %}
+                                <li class="py-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            {% if entry.to_state == 'SUBMITTED' %}
+                                            <div class="bg-blue-100 p-2 rounded-full">
+                                                <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                                </svg>
+                                            </div>
+                                            {% elif entry.to_state == 'SCREENING' %}
+                                            <div class="bg-indigo-100 p-2 rounded-full">
+                                                <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                                </svg>
+                                            </div>
+                                            {% elif entry.to_state == 'APPROVAL_PENDING' %}
+                                            <div class="bg-yellow-100 p-2 rounded-full">
+                                                <svg class="h-5 w-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </div>
+                                            {% elif entry.to_state == 'APPROVED' %}
+                                            <div class="bg-green-100 p-2 rounded-full">
+                                                <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            {% elif entry.to_state == 'REJECTED' %}
+                                            <div class="bg-red-100 p-2 rounded-full">
+                                                <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </div>
+                                            {% else %}
+                                            <div class="bg-gray-100 p-2 rounded-full">
+                                                <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                                                </svg>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 truncate">
+                                                Changed from <span class="font-bold">{{ entry.from_state }}</span> to <span class="font-bold">{{ entry.to_state }}</span>
+                                            </p>
+                                            <p class="text-sm text-gray-500 truncate">
+                                                By {{ entry.by_user }} on {{ entry.timestamp|date:"d M Y H:i" }}
+                                            </p>
+                                            {% if entry.notes %}
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                {{ entry.notes }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mt-3 bg-gray-50 p-4 rounded-md">
+                        <p class="text-sm text-gray-700">No workflow history is available for this profile.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Periodic Review Schedule -->
+                <div class="border-t border-gray-200 pt-5">
+                    <h2 class="text-lg font-medium text-gray-900">Review Schedule</h2>
+                    <div class="mt-3 bg-blue-50 p-4 rounded-md">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Next Review Date</h3>
+                                <div class="mt-2 text-sm text-blue-700">
+                                    <p>
+                                        {% if workflow_state.next_review_date %}
+                                            {{ workflow_state.next_review_date|date:"d M Y" }}
+                                            {% if workflow_state.next_review_date|date:"Y-m-d" < today %}
+                                                <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded ml-1">Overdue</span>
+                                            {% elif workflow_state.next_review_date|date:"Y-m-d" < thirty_days_from_now %}
+                                                <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded ml-1">Coming Soon</span>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if test_result.risk_level == 'High' %}
+                                                {% with calculated_date=workflow_state.updated_at|date:"d M Y"|add_months:3 %}
+                                                {{ calculated_date }} (3 months from approval)
+                                                {% with calculated_date_obj=workflow_state.updated_at|add_months:3|date:"Y-m-d" %}
+                                                    {% if calculated_date_obj < today %}
+                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded ml-1">Overdue</span>
+                                                    {% elif calculated_date_obj < thirty_days_from_now %}
+                                                        <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded ml-1">Coming Soon</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                                {% endwith %}
+                                            {% elif test_result.risk_level == 'Medium' %}
+                                                {% with calculated_date=workflow_state.updated_at|date:"d M Y"|add_months:6 %}
+                                                {{ calculated_date }} (6 months from approval)
+                                                {% with calculated_date_obj=workflow_state.updated_at|add_months:6|date:"Y-m-d" %}
+                                                    {% if calculated_date_obj < today %}
+                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded ml-1">Overdue</span>
+                                                    {% elif calculated_date_obj < thirty_days_from_now %}
+                                                        <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded ml-1">Coming Soon</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                                {% endwith %}
+                                            {% else %}
+                                                {% with calculated_date=workflow_state.updated_at|date:"d M Y"|add_year:1 %}
+                                                {{ calculated_date }} (1 year from approval)
+                                                {% with calculated_date_obj=workflow_state.updated_at|add_year:1|date:"Y-m-d" %}
+                                                    {% if calculated_date_obj < today %}
+                                                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded ml-1">Overdue</span>
+                                                    {% elif calculated_date_obj < thirty_days_from_now %}
+                                                        <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded ml-1">Coming Soon</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endif %}
+                                    </p>
+                                    
+                                    <p class="mt-2">
+                                        <strong>Review Frequency:</strong>
+                                        {% if test_result.risk_level == 'High' %}
+                                            Quarterly (every 3 months)
+                                        {% elif test_result.risk_level == 'Medium' %}
+                                            Semi-Annually (every 6 months)
+                                        {% else %}
+                                            Annually (every 12 months)
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex justify-between">
+                <a href="{% url 'kyc_app:kyc_workflow_dashboard' %}" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Dashboard
+                </a>
+                
+                {% if user.is_staff %}
+                <form method="post" action="{% url 'kyc_app:reopen_kyc_review' profile.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Reopen for Review
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

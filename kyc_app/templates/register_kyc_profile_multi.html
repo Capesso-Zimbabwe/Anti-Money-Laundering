@@ -1,0 +1,776 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100 p-6 text-sm">
+  <div class="w-full max-w-5xl bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-lg font-bold text-gray-800 text-center mb-6">
+      Register KYC Profile
+    </h2>
+    
+    <!-- Optional: Display Django messages -->
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="p-4 mb-2 text-sm {% if message.tags == 'success' %}text-green-700 bg-green-100{% elif message.tags == 'error' %}text-red-700 bg-red-100{% else %}text-gray-700 bg-gray-100{% endif %} rounded-lg" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <!-- Display form-wide errors if they exist -->
+    {% if form.errors %}
+      <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+        There were errors in your submission. Please correct them and try again.
+      </div>
+      {% if form.non_field_errors %}
+        <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+    
+    <!-- Form Steps Progress Bar -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div id="step-1-indicator" class="flex flex-col items-center">
+          <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+          <span class="text-xs mt-1">Personal Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-1-2"></div>
+        <div id="step-2-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">2</div>
+          <span class="text-xs mt-1">Identification</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-2-3"></div>
+        <div id="step-3-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">3</div>
+          <span class="text-xs mt-1">Contact Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-3-4"></div>
+        <div id="step-4-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">4</div>
+          <span class="text-xs mt-1">Financial Info</span>
+        </div>
+        <div class="h-1 flex-1 mx-2 bg-gray-300" id="progress-4-5"></div>
+        <div id="step-5-indicator" class="flex flex-col items-center opacity-50">
+          <div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center font-bold">5</div>
+          <span class="text-xs mt-1">Banking</span>
+        </div>
+      </div>
+    </div>
+    
+    <form id="kyc-form" method="POST" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="is_draft" id="is_draft" value="true">
+      <input type="hidden" name="current_step" id="current_step" value="1">
+      
+      <!-- Step 1: Personal Information -->
+      <div id="step-1" class="bg-gray-100 p-4 rounded-md">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Personal Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Customer ID -->
+          <div>
+            <label for="{{ form.customer_id.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Customer ID <span class="text-red-500">*</span>
+            </label>
+            {{ form.customer_id|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.customer_id.errors %}visible{% else %}hidden{% endif %}" id="error-customer_id">
+              {% if form.customer_id.errors %}{{ form.customer_id.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Full Name -->
+          <div>
+            <label for="{{ form.full_name.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Full Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.full_name|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.full_name.errors %}visible{% else %}hidden{% endif %}" id="error-full_name">
+              {% if form.full_name.errors %}{{ form.full_name.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Date of Birth -->
+          <div>
+            <label for="{{ form.date_of_birth.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Date of Birth <span class="text-red-500">*</span>
+            </label>
+            {{ form.date_of_birth|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs"|attr:"max:2006-01-01" }}
+            <span class="error-message text-red-500 text-xs {% if form.date_of_birth.errors %}visible{% else %}hidden{% endif %}" id="error-date_of_birth">
+              {% if form.date_of_birth.errors %}{{ form.date_of_birth.errors.0 }}{% endif %}
+            </span>
+            <small class="text-gray-500 text-xs">Format: YYYY-MM-DD (e.g., 1990-01-01)</small>
+          </div>
+          <!-- Nationality -->
+          <div>
+            <label for="id_nationality" class="block text-xs text-gray-700 font-semibold">
+              Nationality <span class="text-red-500">*</span>
+            </label>
+            <select name="{{ form.nationality.name }}" id="id_nationality" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+              <option value="">Select Nationality</option>
+              <!-- This will be populated by JavaScript using the countries list -->
+            </select>
+            <span class="error-message text-red-500 text-xs {% if form.nationality.errors %}visible{% else %}hidden{% endif %}" id="error-nationality">
+              {% if form.nationality.errors %}{{ form.nationality.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Gender -->
+          <div>
+            <label for="{{ form.gender.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Gender
+            </label>
+            {{ form.gender|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 2: Identification Documents -->
+      <div id="step-2" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Identification Documents</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- ID Document Type -->
+          <div>
+            <label for="{{ form.id_document_type.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              ID Document Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.id_document_type|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.id_document_type.errors %}visible{% else %}hidden{% endif %}" id="error-id_document_type">
+              {% if form.id_document_type.errors %}{{ form.id_document_type.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- ID Document Number -->
+          <div>
+            <label for="{{ form.id_document_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              ID Document Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.id_document_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.id_document_number.errors %}visible{% else %}hidden{% endif %}" id="error-id_document_number">
+              {% if form.id_document_number.errors %}{{ form.id_document_number.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- ID Issued Country -->
+          <div>
+            <label for="id_issued_country" class="block text-xs text-gray-700 font-semibold">
+              ID Issued Country <span class="text-red-500">*</span>
+            </label>
+            <select name="{{ form.id_issued_country.name }}" id="id_issued_country" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+              <option value="">Select Country</option>
+              <!-- This will be populated by JavaScript using the countries list -->
+            </select>
+            <span class="error-message text-red-500 text-xs {% if form.id_issued_country.errors %}visible{% else %}hidden{% endif %}" id="error-id_issued_country">
+              {% if form.id_issued_country.errors %}{{ form.id_issued_country.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- ID Expiry Date -->
+          <div>
+            <label for="{{ form.id_expiry_date.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              ID Expiry Date <span class="text-red-500">*</span>
+            </label>
+            {{ form.id_expiry_date|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.id_expiry_date.errors %}visible{% else %}hidden{% endif %}" id="error-id_expiry_date">
+              {% if form.id_expiry_date.errors %}{{ form.id_expiry_date.errors.0 }}{% endif %}
+            </span>
+            <small class="text-gray-500 text-xs">Format: YYYY-MM-DD</small>
+          </div>
+          <!-- Upload ID Document File -->
+          <div class="col-span-2">
+            <label for="{{ form.id_document_file.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Upload ID Document
+            </label>
+            <div class="mt-1 flex items-center">
+              {{ form.id_document_file|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            </div>
+            <div id="document-preview" class="mt-2 hidden">
+              <p class="text-xs text-gray-500">Document preview:</p>
+              <img id="document-image" class="mt-1 max-h-32 border border-gray-200" alt="ID Document Preview">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 3: Contact Information -->
+      <div id="step-3" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Contact Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Email -->
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Email <span class="text-red-500">*</span>
+            </label>
+            {{ form.email|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.email.errors %}visible{% else %}hidden{% endif %}" id="error-email">
+              {% if form.email.errors %}{{ form.email.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Phone Number -->
+          <div>
+            <label for="{{ form.phone_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Phone Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.phone_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.phone_number.errors %}visible{% else %}hidden{% endif %}" id="error-phone_number">
+              {% if form.phone_number.errors %}{{ form.phone_number.errors.0 }}{% endif %}
+            </span>
+            <small class="text-gray-500 text-xs">Format: Include country code (e.g., +1234567890)</small>
+          </div>
+          <!-- Address -->
+          <div class="col-span-2">
+            <label for="{{ form.address.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Address <span class="text-red-500">*</span>
+            </label>
+            {{ form.address|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.address.errors %}visible{% else %}hidden{% endif %}" id="error-address">
+              {% if form.address.errors %}{{ form.address.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- City -->
+          <div>
+            <label for="{{ form.city.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              City <span class="text-red-500">*</span>
+            </label>
+            {{ form.city|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.city.errors %}visible{% else %}hidden{% endif %}" id="error-city">
+              {% if form.city.errors %}{{ form.city.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Country -->
+          <div>
+            <label for="id_country" class="block text-xs text-gray-700 font-semibold">
+              Country <span class="text-red-500">*</span>
+            </label>
+            <select name="{{ form.country.name }}" id="id_country" class="w-full border border-gray-300 p-2 rounded-md text-xs">
+              <option value="">Select Country</option>
+              <!-- This will be populated by JavaScript using the countries list -->
+            </select>
+            <span class="error-message text-red-500 text-xs {% if form.country.errors %}visible{% else %}hidden{% endif %}" id="error-country">
+              {% if form.country.errors %}{{ form.country.errors.0 }}{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 4: Employment & Financial Information -->
+      <div id="step-4" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Employment & Financial Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Occupation -->
+          <div>
+            <label for="{{ form.occupation.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Occupation
+            </label>
+            {{ form.occupation|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          </div>
+          <!-- Employer Name -->
+          <div>
+            <label for="{{ form.employer_name.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Employer Name
+            </label>
+            {{ form.employer_name|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          </div>
+          <!-- Annual Income -->
+          <div>
+            <label for="{{ form.annual_income.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Annual Income
+            </label>
+            {{ form.annual_income|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          </div>
+          <!-- Source of Funds -->
+          <div>
+            <label for="{{ form.source_of_funds.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Source of Funds
+            </label>
+            {{ form.source_of_funds|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 5: Banking Information -->
+      <div id="step-5" class="bg-gray-100 p-4 rounded-md hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Banking Information</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Account Number -->
+          <div>
+            <label for="{{ form.account_number.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Number <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_number|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.account_number.errors %}visible{% else %}hidden{% endif %}" id="error-account_number">
+              {% if form.account_number.errors %}{{ form.account_number.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Account Type -->
+          <div>
+            <label for="{{ form.account_type.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Type <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_type|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.account_type.errors %}visible{% else %}hidden{% endif %}" id="error-account_type">
+              {% if form.account_type.errors %}{{ form.account_type.errors.0 }}{% endif %}
+            </span>
+          </div>
+          <!-- Account Status -->
+          <div>
+            <label for="{{ form.account_status.id_for_label }}" class="block text-xs text-gray-700 font-semibold">
+              Account Status <span class="text-red-500">*</span>
+            </label>
+            {{ form.account_status|add_class:"rounded-md border border-gray-300 p-2 w-full text-xs" }}
+            <span class="error-message text-red-500 text-xs {% if form.account_status.errors %}visible{% else %}hidden{% endif %}" id="error-account_status">
+              {% if form.account_status.errors %}{{ form.account_status.errors.0 }}{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Form Navigation Buttons -->
+      <div class="flex justify-between mt-6">
+        <button 
+          type="button" 
+          id="prev-btn" 
+          class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 hidden"
+        >
+          Previous
+        </button>
+        <div>
+          <button
+            type="button"
+            id="save-draft-btn"
+            class="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 mr-2"
+          >
+            Save as Draft
+          </button>
+          <button 
+            type="button" 
+            id="next-btn" 
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Next
+          </button>
+          <button 
+            type="submit" 
+            id="submit-btn" 
+            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 hidden"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Countries data
+    const countries = [
+      {code: 'US', name: 'United States'},
+      {code: 'GB', name: 'United Kingdom'},
+      {code: 'CA', name: 'Canada'},
+      {code: 'AU', name: 'Australia'},
+      {code: 'DE', name: 'Germany'},
+      {code: 'FR', name: 'France'},
+      {code: 'JP', name: 'Japan'},
+      {code: 'CN', name: 'China'},
+      {code: 'IN', name: 'India'},
+      {code: 'BR', name: 'Brazil'},
+      {code: 'RU', name: 'Russia'},
+      {code: 'ZA', name: 'South Africa'},
+      {code: 'NG', name: 'Nigeria'},
+      {code: 'KE', name: 'Kenya'},
+      {code: 'GH', name: 'Ghana'},
+      {code: 'MX', name: 'Mexico'},
+      // Add more countries as needed
+    ];
+    
+    // Populate country dropdowns
+    function populateCountryDropdowns() {
+      const dropdowns = ['id_nationality', 'id_issued_country', 'id_country'];
+      
+      dropdowns.forEach(id => {
+        const dropdown = document.getElementById(id);
+        
+        countries.forEach(country => {
+          const option = document.createElement('option');
+          option.value = country.name;
+          option.textContent = country.name;
+          dropdown.appendChild(option);
+        });
+      });
+    }
+    
+    populateCountryDropdowns();
+    
+    // Multi-step form handling
+    {% comment %}
+      Determine the initial step based on form errors
+    {% endcomment %}
+    let currentStep = 1;
+
+    {% if form.errors %}
+      {% if form.customer_id.errors or form.full_name.errors or form.date_of_birth.errors or form.nationality.errors %}
+        currentStep = 1;
+      {% elif form.id_document_type.errors or form.id_document_number.errors or form.id_issued_country.errors or form.id_expiry_date.errors %}
+        currentStep = 2;
+      {% elif form.email.errors or form.phone_number.errors or form.address.errors or form.city.errors or form.country.errors %}
+        currentStep = 3;
+      {% elif form.occupation.errors or form.employer_name.errors or form.annual_income.errors or form.source_of_funds.errors %}
+        currentStep = 4;
+      {% elif form.account_number.errors or form.account_type.errors or form.account_status.errors %}
+        currentStep = 5;
+      {% endif %}
+    {% endif %}
+
+    const totalSteps = 5;
+    const form = document.getElementById('kyc-form');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const saveDraftBtn = document.getElementById('save-draft-btn');
+    const currentStepInput = document.getElementById('current_step');
+    const isDraftInput = document.getElementById('is_draft');
+    
+    // Required fields by step
+    const requiredFields = {
+      1: ['customer_id', 'full_name', 'date_of_birth', 'nationality'],
+      2: ['id_document_type', 'id_document_number', 'id_issued_country', 'id_expiry_date'],
+      3: ['email', 'phone_number', 'address', 'city', 'country'],
+      4: [], // No required fields in step 4
+      5: ['account_number', 'account_type', 'account_status']
+    };
+    
+    function updateProgressBar() {
+      // Update progress indicators
+      for (let i = 1; i <= totalSteps; i++) {
+        const indicator = document.getElementById(`step-${i}-indicator`);
+        const innerCircle = indicator.querySelector('div');
+        
+        if (i < currentStep) {
+          // Completed steps
+          indicator.classList.remove('opacity-50');
+          innerCircle.classList.remove('bg-gray-400');
+          innerCircle.classList.add('bg-green-600');
+        } else if (i === currentStep) {
+          // Current step
+          indicator.classList.remove('opacity-50');
+          innerCircle.classList.remove('bg-gray-400');
+          innerCircle.classList.add('bg-blue-600');
+        } else {
+          // Future steps
+          indicator.classList.add('opacity-50');
+          innerCircle.classList.remove('bg-blue-600', 'bg-green-600');
+          innerCircle.classList.add('bg-gray-400');
+        }
+      }
+      
+      // Update progress bars between steps
+      for (let i = 1; i < totalSteps; i++) {
+        const progressBar = document.getElementById(`progress-${i}-${i+1}`);
+        
+        if (i < currentStep) {
+          // Progress bars before current step
+          progressBar.classList.remove('bg-gray-300');
+          progressBar.classList.add('bg-green-600');
+        } else {
+          // Progress bars after or at current step
+          progressBar.classList.remove('bg-green-600');
+          progressBar.classList.add('bg-gray-300');
+        }
+      }
+    }
+    
+    function validateStep(step) {
+      let isValid = true;
+      
+      // Reset all error messages
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+      });
+      
+      // Remove all error styling from fields
+      document.querySelectorAll('input, select, textarea').forEach(field => {
+        field.classList.remove('border-red-500');
+      });
+      
+      // Validate required fields for the current step
+      requiredFields[step].forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        const errorEl = document.getElementById(`error-${fieldName}`);
+        
+        if (!field.value.trim()) {
+          isValid = false;
+          errorEl.textContent = 'This field is required';
+          errorEl.classList.remove('hidden');
+          field.classList.add('border-red-500');
+        }
+      });
+      
+      // Date of birth validation for step 1
+      if (step === 1) {
+        const dobField = document.querySelector('[name="date_of_birth"]');
+        const dobErrorEl = document.getElementById('error-date_of_birth');
+        
+        if (dobField.value) {
+          try {
+            // Check if date is valid
+            const dobValue = dobField.value;
+            const dobParts = dobValue.split('-');
+            
+            if (dobParts.length !== 3 || 
+                isNaN(parseInt(dobParts[0])) || 
+                isNaN(parseInt(dobParts[1])) || 
+                isNaN(parseInt(dobParts[2]))) {
+              isValid = false;
+              dobErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+              dobErrorEl.classList.remove('hidden');
+              dobField.classList.add('border-red-500');
+            } else {
+              // Check if date is in the past and not in the future
+              const dob = new Date(dobField.value);
+              const now = new Date();
+              
+              if (dob > now) {
+                isValid = false;
+                dobErrorEl.textContent = 'Date of birth cannot be in the future';
+                dobErrorEl.classList.remove('hidden');
+                dobField.classList.add('border-red-500');
+              }
+              
+              // Check if user is at least 18 years old
+              const eighteenYearsAgo = new Date();
+              eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+              
+              if (dob > eighteenYearsAgo) {
+                isValid = false;
+                dobErrorEl.textContent = 'You must be at least 18 years old';
+                dobErrorEl.classList.remove('hidden');
+                dobField.classList.add('border-red-500');
+              }
+            }
+          } catch (e) {
+            isValid = false;
+            dobErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+            dobErrorEl.classList.remove('hidden');
+            dobField.classList.add('border-red-500');
+          }
+        }
+      }
+      
+      // ID expiry date validation for step 2
+      if (step === 2) {
+        const expiryField = document.querySelector('[name="id_expiry_date"]');
+        const expiryErrorEl = document.getElementById('error-id_expiry_date');
+        
+        if (expiryField.value) {
+          try {
+            // Check if date is valid
+            const expiryValue = expiryField.value;
+            const expiryParts = expiryValue.split('-');
+            
+            if (expiryParts.length !== 3 || 
+                isNaN(parseInt(expiryParts[0])) || 
+                isNaN(parseInt(expiryParts[1])) || 
+                isNaN(parseInt(expiryParts[2]))) {
+              isValid = false;
+              expiryErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+              expiryErrorEl.classList.remove('hidden');
+              expiryField.classList.add('border-red-500');
+            } else {
+              // Check if expiry date is in the future
+              const expiry = new Date(expiryField.value);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              if (expiry < today) {
+                isValid = false;
+                expiryErrorEl.textContent = 'ID document is already expired';
+                expiryErrorEl.classList.remove('hidden');
+                expiryField.classList.add('border-red-500');
+              }
+            }
+          } catch (e) {
+            isValid = false;
+            expiryErrorEl.textContent = 'Invalid date format. Use YYYY-MM-DD';
+            expiryErrorEl.classList.remove('hidden');
+            expiryField.classList.add('border-red-500');
+          }
+        }
+      }
+      
+      // Email validation for step 3
+      if (step === 3) {
+        const emailField = document.querySelector('[name="email"]');
+        const emailErrorEl = document.getElementById('error-email');
+        
+        if (emailField.value && !isValidEmail(emailField.value)) {
+          isValid = false;
+          emailErrorEl.textContent = 'Please enter a valid email address';
+          emailErrorEl.classList.remove('hidden');
+          emailField.classList.add('border-red-500');
+        }
+        
+        // Phone number basic validation
+        const phoneField = document.querySelector('[name="phone_number"]');
+        const phoneErrorEl = document.getElementById('error-phone_number');
+        
+        if (phoneField.value && !/^\+?[0-9\s\-\(\)]{8,20}$/.test(phoneField.value)) {
+          isValid = false;
+          phoneErrorEl.textContent = 'Please enter a valid phone number';
+          phoneErrorEl.classList.remove('hidden');
+          phoneField.classList.add('border-red-500');
+        }
+      }
+      
+      return isValid;
+    }
+    
+    function isValidEmail(email) {
+      const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(String(email).toLowerCase());
+    }
+    
+    function showStep(step) {
+      // Hide all steps
+      document.querySelectorAll('[id^="step-"]').forEach(el => {
+        if (el.id.startsWith('step-') && el.id.length === 7) { // Only match actual steps, not step indicators
+          el.classList.add('hidden');
+        }
+      });
+      
+      // Show current step
+      document.getElementById(`step-${step}`).classList.remove('hidden');
+      
+      // Update buttons
+      if (step === 1) {
+        prevBtn.classList.add('hidden');
+      } else {
+        prevBtn.classList.remove('hidden');
+      }
+      
+      if (step === totalSteps) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+      }
+      
+      // Update progress indicators
+      updateProgressBar();
+      
+      // Update current step in hidden field
+      currentStepInput.value = step;
+    }
+    
+    // Initialize document preview functionality
+    const documentFileInput = document.getElementById('id_id_document_file');
+    const documentPreview = document.getElementById('document-preview');
+    const documentImage = document.getElementById('document-image');
+    
+    documentFileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          documentImage.src = e.target.result;
+          documentPreview.classList.remove('hidden');
+        };
+        
+        reader.readAsDataURL(this.files[0]);
+      } else {
+        documentPreview.classList.add('hidden');
+      }
+    });
+    
+    // Button event listeners
+    nextBtn.addEventListener('click', function() {
+      if (validateStep(currentStep)) {
+        currentStep++;
+        showStep(currentStep);
+      }
+    });
+    
+    prevBtn.addEventListener('click', function() {
+      currentStep--;
+      showStep(currentStep);
+    });
+    
+    saveDraftBtn.addEventListener('click', function() {
+      isDraftInput.value = 'true';
+      form.submit();
+    });
+    
+    submitBtn.addEventListener('click', function() {
+      if (validateStep(currentStep)) {
+        isDraftInput.value = 'false';
+        form.submit();
+      }
+    });
+    
+    // Add input event listeners to clear errors when user makes changes
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.remove('border-red-500');
+        const fieldName = this.name;
+        const errorEl = document.getElementById(`error-${fieldName}`);
+        if (errorEl) {
+          errorEl.classList.add('hidden');
+          errorEl.textContent = '';
+        }
+      });
+    });
+    
+    // Initialize the nationality select with the current value if it exists
+    const nationalitySelect = document.getElementById('id_nationality');
+    const currentNationality = '{{ form.nationality.value|default:"" }}';
+    if (currentNationality) {
+      // Set the selected nationality after the options are populated
+      setTimeout(() => {
+        for (let i = 0; i < nationalitySelect.options.length; i++) {
+          if (nationalitySelect.options[i].value === currentNationality) {
+            nationalitySelect.selectedIndex = i;
+            break;
+          }
+        }
+      }, 100);
+    }
+    
+    // Update the countries population function to preserve the selected value
+    const originalPopulateCountryDropdowns = populateCountryDropdowns;
+    populateCountryDropdowns = function() {
+      // Store current selections
+      const dropdowns = ['id_nationality', 'id_issued_country', 'id_country'];
+      const currentValues = {};
+      
+      dropdowns.forEach(id => {
+        const dropdown = document.getElementById(id);
+        if (dropdown && dropdown.value) {
+          currentValues[id] = dropdown.value;
+        }
+      });
+      
+      // Call original function
+      originalPopulateCountryDropdowns();
+      
+      // Restore selections
+      for (const [id, value] of Object.entries(currentValues)) {
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+          for (let i = 0; i < dropdown.options.length; i++) {
+            if (dropdown.options[i].value === value) {
+              dropdown.selectedIndex = i;
+              break;
+            }
+          }
+        }
+      }
+    };
+    
+    // Initialize form
+    showStep(currentStep);
+  });
+</script>
+{% endblock %} 

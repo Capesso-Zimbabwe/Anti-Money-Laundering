@@ -1,0 +1,771 @@
+{% extends "base.html" %}
+
+{% block title %}Suspicious Activity Report: {{ report.report_id }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Suspicious Activity Report</h1>
+        <a href="{% url 'suspicious_activity_report_view' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Cancel
+        </a>
+    </div>
+    <!-- Header Section -->
+    <div class=" bg-gray-500 rounded-t-lg shadow-lg">
+        <div class="px-6 py-4 text-center">
+            <h1 class="text-2xl font-bold text-white tracking-wide">SUSPICIOUS ACTIVITY REPORT</h1>
+            <p class="text-white">Reference: {{ report.report_reference_number }} | ID: {{ report.report_id }}</p>
+        </div>
+    </div>
+    
+
+    <!-- Main Content Container -->
+    <div class="bg-white rounded-b-lg shadow-lg mb-6 border border-gray-200">
+        <!-- Report ID Section -->
+        <div class="border-b border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Report Date
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.report_date|date:"F d, Y" }}
+                </div>
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Status
+                </div>
+                <div class="p-4 text-gray-800">
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold
+                        {% if report.report_status == 'DRAFT' %}
+                            bg-gray-100 text-gray-800
+                        {% elif report.report_status == 'PENDING' %}
+                            bg-yellow-100 text-yellow-800
+                        {% elif report.report_status == 'SUBMITTED' %}
+                            bg-blue-100 text-blue-800
+                        {% elif report.report_status == 'CLOSED' %}
+                            bg-green-100 text-green-800
+                        {% else %}
+                            bg-purple-100 text-purple-800
+                        {% endif %}">
+                        {{ report.get_report_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PART A - REPORTING INFORMATION -->
+        <div class="border-b border-gray-200">
+            <div class="bg-gray-500 text-white px-4 py-2">
+                <h2 class="font-bold">PART A - REPORTING INFORMATION</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Filing Institution
+                </div>
+                <div class="p-4 col-span-3 text-gray-800">
+                    {{ report.filing_institution_name }} (ID: {{ report.filing_institution_id }})
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Report Type
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.get_report_type_display }}
+                </div>
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Detection Date
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.detection_date|date:"F d, Y H:i" }}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Prepared By
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.preparer_name }}, {{ report.preparer_position }}
+                </div>
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Preparer Contact
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.preparer_contact }}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Approved By
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.approver_name }}, {{ report.approver_position }}
+                </div>
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Submission Date
+                </div>
+                <div class="p-4 text-gray-800">
+                    {% if report.submission_date %}
+                        {{ report.submission_date|date:"F d, Y H:i" }}
+                    {% else %}
+                        Not submitted
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- PART B - SUBJECT INFORMATION -->
+<div class="border-b border-gray-200">
+    <div class="bg-gray-500 text-white px-4 py-2">
+        <h2 class="font-bold">PART B - SUBJECT INFORMATION</h2>
+    </div>
+    
+    <!-- Risk Assessment -->
+    <div class="bg-gray-200 px-4 py-2">
+        <h3 class="font-semibold text-gray-700">Risk Assessment</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Risk Level
+        </div>
+        <div class="p-4 text-gray-800">
+            <span class="px-3 py-1 rounded-full text-sm font-semibold
+                {% if report.risk_level == 'HIGH' or report.risk_level == 'CRITICAL' %}
+                    bg-red-100 text-red-800
+                {% elif report.risk_level == 'MEDIUM' %}
+                    bg-yellow-100 text-yellow-800
+                {% else %}
+                    bg-green-100 text-green-800
+                {% endif %}">
+                {{ report.get_risk_level_display }}
+            </span>
+        </div>
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Activity Type
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.get_suspicious_activity_type_display }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Secondary Activity Types
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.secondary_activity_types|default:"None" }}
+        </div>
+    </div>
+    
+    <!-- Details of Person or Entity Being Reported -->
+    <div class="bg-blue-100 px-4 py-2 border-t border-gray-300">
+        <h3 class="font-bold text-blue-800">Details of Person or Entity Being Reported</h3>
+    </div>
+    
+    {% if not report.is_entity %}
+    <!-- Individual Details Section -->
+    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+        <h3 class="font-semibold text-gray-700">Individuals</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Surname
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.individual_surname|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Full name
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.individual_full_name|default:report.primary_subject_name }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Nationality
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.primary_subject_nationality|default:report.individual_nationality|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Account Numbers
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.individual_account_numbers|default:report.primary_account_number }}
+            {% if report.additional_accounts %}
+                , {{ report.additional_accounts }}
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Identity or registration number
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.primary_subject_id_type|default:report.id_document_type }}: {{ report.primary_subject_id|default:report.individual_identity_number }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Date of Birth
+        </div>
+        <div class="p-4 text-gray-800">
+            {% if report.primary_subject_dob %}
+                {{ report.primary_subject_dob|date:"F d, Y" }}
+            {% else %}
+                Not specified
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Occupation
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.primary_subject_occupation|default:report.customer_occupation|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Email
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.customer_email|default:"Not specified" }}
+        </div>
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Phone
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.customer_phone|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Address
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.primary_subject_address|default:report.customer_address|default:"Not specified" }}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Entity Information (if applicable) -->
+    {% if report.is_entity %}
+    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+        <h3 class="font-semibold text-gray-700">Companies</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Name
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_name|default:report.primary_subject_name }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Registration Number
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_registration_number|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Names of Directors
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_directors|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Directors' Contact Details
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_directors_contact|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Physical Address of Directors
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_directors_address|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Company Account Number
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_account|default:report.primary_account_number }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Directors' Account Numbers
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_directors_accounts|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Occupation or Type of Business
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_business_type|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Address
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.company_address|default:"Not specified" }}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Beneficiary Information -->
+    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+        <h3 class="font-semibold text-gray-700">Beneficiary Information</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Beneficiary Name
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.beneficiary_name|default:"Not specified" }}
+        </div>
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Relationship
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.beneficiary_relationship|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Account
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.beneficiary_account|default:"Not specified" }}
+        </div>
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Address
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.beneficiary_address|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <!-- On Behalf Entity Information (if applicable) -->
+    {% if report.behalf_entity_name %}
+    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+        <h3 class="font-semibold text-gray-700">On Behalf Entity</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Entity Name
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.behalf_entity_name }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Business Type
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.behalf_entity_business_type|default:"Not specified" }}
+        </div>
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Account Number
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.behalf_entity_account_number|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Directors
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.behalf_entity_directors|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Address
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.behalf_entity_address|default:"Not specified" }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Transaction Information -->
+    <div class="bg-gray-200 px-4 py-2 border-t border-gray-300">
+        <h3 class="font-semibold text-gray-700">Transaction Details</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Date of Suspicious Activity
+        </div>
+        <div class="p-4 text-gray-800">
+            {% if report.suspicious_date %}
+                {{ report.suspicious_date|date:"Y-m-d" }}
+            {% elif report.activity_start_date %}
+                {{ report.activity_start_date|date:"Y-m-d" }}
+            {% else %}
+                Not specified
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Total Dollar Amount Involved
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.total_suspicious_amount|default:report.amount|floatformat:2 }} {{ report.currency_code|default:"USD" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Sender Account
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.sender_account|default:"Not specified" }}
+        </div>
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Receiver Account
+        </div>
+        <div class="p-4 text-gray-800">
+            {{ report.receiver_account|default:"Not specified" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Related Transactions
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.related_transactions|default:"None" }}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Transaction Type
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {% for type in report.transaction_types %}
+                {{ type }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                Not specified
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+        <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+            Transaction Comment
+        </div>
+        <div class="p-4 col-span-3 text-gray-800">
+            {{ report.transaction_comment|default:"None" }}
+        </div>
+    </div>
+</div>
+
+        <!-- PART C - SUSPICIOUS ACTIVITY DETAILS -->
+        <div class="border-b border-gray-200">
+            <div class="bg-gray-500 text-white px-4 py-2">
+                <h2 class="font-bold">PART C - SUSPICIOUS ACTIVITY DETAILS</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Activity Period
+                </div>
+                <div class="p-4 col-span-3 text-gray-800">
+                    {{ report.activity_start_date|date:"M d, Y" }} to {{ report.activity_end_date|date:"M d, Y" }}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Total Suspicious Amount
+                </div>
+                <div class="p-4 text-gray-800 font-semibold">
+                    {{ report.total_suspicious_amount }} {{ report.currency_code }}
+                </div>
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Related Transactions
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.related_transactions|default:"None" }}
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                    <p class="font-semibold">Description of Suspicious Activity</p>
+                    <p class="text-sm text-gray-600 italic">Detailed description of the unusual circumstances that led to the suspicion</p>
+                </div>
+                
+                <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32 mb-4">
+                    <p class="whitespace-pre-line text-gray-800">{{ report.suspicious_activity_description }}</p>
+                </div>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                    <p class="font-semibold">Red Flags Identified</p>
+                </div>
+                
+                <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32 mb-4">
+                    <p class="whitespace-pre-line text-gray-800">{{ report.red_flags_identified }}</p>
+                </div>
+                
+                {% if report.unusual_behavior_patterns %}
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                    <p class="font-semibold">Unusual Behavior Patterns</p>
+                </div>
+                
+                <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32 mb-4">
+                    <p class="whitespace-pre-line text-gray-800">{{ report.unusual_behavior_patterns }}</p>
+                </div>
+                {% endif %}
+                
+                {% if report.supporting_evidence %}
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                    <p class="font-semibold">Supporting Evidence</p>
+                </div>
+                
+                <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32">
+                    <p class="whitespace-pre-line text-gray-800">{{ report.supporting_evidence }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PART D - RELATED TRANSACTIONS -->
+        {% if related_transactions %}
+        <div class="border-b border-gray-200">
+            <div class="bg-gray-500 text-white px-4 py-2">
+                <h2 class="font-bold">PART D - RELATED TRANSACTIONS</h2>
+            </div>
+            
+            <div class="overflow-x-auto p-4">
+                <table class="min-w-full divide-y divide-gray-200 border">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                                Transaction ID
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                                Date/Time
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                                Type
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                                Amount
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+                                Source
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                Destination
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for txn in related_transactions %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 border-r">
+                                {{ txn.transaction_id }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border-r">
+                                {{ txn.transaction_timestamp|date:"M d, Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border-r">
+                                {{ txn.get_transaction_type_code_display }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border-r">
+                                {{ txn.amount }} {{ txn.currency_code }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border-r">
+                                {{ txn.source_account_number }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                {{ txn.destination_account_number }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- PART E - ACTIONS TAKEN -->
+        <div>
+            <div class="bg-gray-500 text-white px-4 py-2">
+                <h2 class="font-bold">PART E - ACTIONS TAKEN</h2>
+            </div>
+            
+            <div class="p-4">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                    <p class="font-semibold">Internal Actions Taken</p>
+                    <p class="text-sm text-gray-600 italic">Details of actions taken by the institution</p>
+                </div>
+                
+                <div class="bg-white border border-gray-300 rounded-md p-4 min-h-32 mb-4">
+                    <p class="whitespace-pre-line text-gray-800">{{ report.internal_actions_taken }}</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% if report.account_action %}
+                    <div>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                            <p class="font-semibold">Account Action</p>
+                        </div>
+                        <div class="bg-white border border-gray-300 rounded-md p-4 min-h-24">
+                            <p class="whitespace-pre-line text-gray-800">{{ report.account_action }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.relationship_action %}
+                    <div>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                            <p class="font-semibold">Relationship Action</p>
+                        </div>
+                        <div class="bg-white border border-gray-300 rounded-md p-4 min-h-24">
+                            <p class="whitespace-pre-line text-gray-800">{{ report.relationship_action }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if report.additional_notes %}
+                <div class="mt-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                        <p class="font-semibold">Additional Notes</p>
+                    </div>
+                    <div class="bg-white border border-gray-300 rounded-md p-4">
+                        <p class="whitespace-pre-line text-gray-800">{{ report.additional_notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if report.law_enforcement_agency %}
+                <div class="mt-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                        <p class="font-semibold">Law Enforcement Information</p>
+                    </div>
+                    <div class="bg-white border border-gray-300 rounded-md p-4">
+                        <p class="text-gray-800">Agency: {{ report.law_enforcement_agency }}</p>
+                        {% if report.law_enforcement_contact %}
+                        <p class="text-gray-800 mt-1">Contact: {{ report.law_enforcement_contact }}</p>
+                        {% endif %}
+                        {% if report.case_reference_number %}
+                        <p class="text-gray-800 mt-1">Case Reference: {{ report.case_reference_number }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- PART F - REGULATORY REPORTING -->
+        <div class="border-t border-gray-200">
+            <div class="bg-gray-500 text-white px-4 py-2">
+                <h2 class="font-bold">PART F - REGULATORY REPORTING</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-b border-gray-200">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Regulatory Filing Required
+                </div>
+                <div class="p-4 text-gray-800">
+                    {{ report.regulatory_filing_required|yesno:"Yes,No,Unknown" }}
+                </div>
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    Regulatory Filing Deadline
+                </div>
+                <div class="p-4 text-gray-800">
+                    {% if report.regulatory_filing_deadline %}
+                        {{ report.regulatory_filing_deadline|date:"F d, Y" }}
+                    {% else %}
+                        Not applicable
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-0">
+                <div class="bg-gray-100 p-4 font-semibold text-gray-700 border-r border-gray-200">
+                    External Regulatory Reference
+                </div>
+                <div class="p-4 col-span-3 text-gray-800">
+                    {{ report.external_reference_number|default:"Not submitted" }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="text-center text-gray-500 text-sm mt-6">
+        <p>CONFIDENTIAL - For official use only</p>
+        <p class="mt-1">Generated on {{ report.report_date|date:"F d, Y" }}</p>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex justify-center gap-4 mt-8">
+        
+        {% if report.report_status == 'DRAFT' or report.report_status == 'PENDING' %}
+        <a href="#" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            Submit Report
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

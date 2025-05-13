@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Batch KYC Screening{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Batch KYC Screening</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="screeningForm" class="row align-items-end">
+                <div class="col-md-4">
+                    <label for="start_date">Start Date</label>
+                    <input type="datetime-local" id="start_date" name="start_date" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date">End Date</label>
+                    <input type="datetime-local" id="end_date" name="end_date" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="runKycBtn" class="btn btn-primary">
+                        <i class="fas fa-play-circle"></i> Run KYC
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Loading indicator -->
+    <div id="loader" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p>Processing KYC screening. This may take a moment...</p>
+    </div>
+    
+    <!-- Results section -->
+    <div id="results" class="card" {% if not show_table %}style="display: none;"{% endif %}>
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">KYC Test Results</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Name</th>
+                            <th>Risk Level</th>
+                            <th>KYC Status</th>
+                            <th>Flags</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in page_obj %}
+                        <tr>
+                            <td>{{ result.kyc_profile.customer_id }}</td>
+                            <td>{{ result.kyc_profile.full_name }}</td>
+                            <td>
+                                <span class="badge {% if result.risk_level == 'High' %}badge-danger{% elif result.risk_level == 'Medium' %}badge-warning{% else %}badge-success{% endif %}">
+                                    {{ result.risk_level }}
+                                </span>
+                            </td>
+                            <td>{{ result.kyc_status }}</td>
+                            <td>
+                                {% if result.politically_exposed_person %}<span class="badge badge-info">PEP</span>{% endif %}
+                                {% if result.sanctions_list_check %}<span class="badge badge-danger">Sanctions</span>{% endif %}
+                                {% if result.adverse_media_check %}<span class="badge badge-warning">Adverse Media</span>{% endif %}
+                                {% if result.suspicious_activity_flag %}<span class="badge badge-dark">Suspicious</span>{% endif %}
+                            </td>
+                            <td>{{ result.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <a href="{% url 'kyc_app:review_kyc_profile' result.kyc_profile.id %}" class="btn btn-sm btn-info">Review</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No KYC test results found for the selected period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&show_table=1">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&show_table=1">{{ i }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&show_table=1">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const screeningForm = document.getElementById('screeningForm');
+        const runKycBtn = document.getElementById('runKycBtn');
+        const loader = document.getElementById('loader');
+        const results = document.getElementById('results');
+        
+        // Set up the Run KYC button
+        runKycBtn.addEventListener('click', function() {
+            // Show loader
+            loader.style.display = 'block';
+            results.style.display = 'none';
+            
+            // Get form data
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            
+            // Create request data
+            const requestData = {};
+            if (startDate) requestData.start_date = startDate;
+            if (endDate) requestData.end_date = endDate;
+            
+            // Send POST request to run KYC screening
+            fetch('{% url "kyc_app:run_kyc_aml_screening" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loader
+                loader.style.display = 'none';
+                
+                // Reload page with parameters to show results
+                const params = new URLSearchParams();
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+                params.append('show_table', '1');
+                
+                window.location.href = `{% url 'kyc_app:run_kyc_aml_screening' %}?${params.toString()}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loader.style.display = 'none';
+                alert('An error occurred while running KYC screening. Please try again.');
+            });
+        });
+        
+        // Helper function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

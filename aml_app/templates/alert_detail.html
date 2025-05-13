@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-xl font-bold mb-4">Alert Details</h1>
+
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="mb-2">
+            <strong>Type:</strong> {{ alert.get_alert_type_display }}
+        </p>
+        <p class="mb-2">
+            <strong>Severity:</strong> {{ alert.get_severity_display }}
+        </p>
+        <p class="mb-2">
+            <strong>Status:</strong> {{ alert.get_status_display }}
+        </p>
+        <p class="mb-2">
+            <strong>Title:</strong> {{ alert.title }}
+        </p>
+        <p class="mb-4">
+            <strong>Message:</strong> {{ alert.message }}
+        </p>
+        <p class="text-sm text-gray-600">
+            <strong>Created At:</strong> {{ alert.created_at|date:"Y-m-d H:i" }}
+        </p>
+
+        {% if alert.kyc_test %}
+        <p class="mt-2 text-sm text-gray-700">
+            <strong>KYC Test Risk Level:</strong> {{ alert.kyc_test.risk_level }}
+        </p>
+        {% endif %}
+        
+        {% if alert.suspicious_txn %}
+        <p class="mt-2 text-sm text-gray-700">
+            <strong>Suspicious Txn ID:</strong> {{ alert.suspicious_txn.transaction.transaction_id }}
+        </p>
+        {% endif %}
+
+        <!-- Resolve Form -->
+        <form method="POST" class="mt-4">
+            {% csrf_token %}
+            <button
+                type="submit"
+                class="bg-[#f68430] text-white px-4 py-2 rounded hover:bg-orange-300 transition"
+            >
+                Send To Case
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-6">
+        <a
+          href="{% url 'list_alerts' %}"
+          class="text-blue-600 hover:underline"
+        >
+            &larr; Back to Alerts
+        </a>
+    </div>
+</div>
+{% endblock %}
