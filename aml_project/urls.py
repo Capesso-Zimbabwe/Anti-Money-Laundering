@@ -43,6 +43,7 @@ urlpatterns = [
 
     # Include kyc_app URLs with namespace
     path('', include('kyc_app.urls', namespace='kyc_app')),
+    path('', include('transaction_monitoring.urls', namespace='transaction_monitoring')),
 
     # Development URLs
     path("__reload__/", include("django_browser_reload.urls")),

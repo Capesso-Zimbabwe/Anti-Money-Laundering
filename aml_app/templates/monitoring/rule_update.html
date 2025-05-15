@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update Rule: {{ rule.rule_name }} | AML Monitoring{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="p-4 bg-white rounded-lg shadow-md" x-data="ruleForm()">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Update Rule: {{ rule.rule_name }}</h1>
+            <p class="text-sm text-gray-600">Rule ID: AML-{{ rule.rule_code }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'transaction_monitoring:rule_detail' rule_id=rule.rule_code %}" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                <svg class="inline-block w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Cancel
+            </a>
+        </div>
+    </div>
+
+    <form method="POST" action="{% url 'transaction_monitoring:rule_update' rule_id=rule.rule_code %}">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Rule Status -->
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Rule Status</h2>
+                
+                <div class="mb-4 flex items-center">
+                    <label class="inline-flex relative items-center cursor-pointer">
+                        <input type="checkbox" name="enabled" class="sr-only peer" {% if rule.enabled %}checked{% endif %} x-model="formData.enabled">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <span class="ml-3 text-sm font-medium text-gray-900" x-text="formData.enabled ? 'Enabled' : 'Disabled'">{% if rule.enabled %}Enabled{% else %}Disabled{% endif %}</span>
+                    </label>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700">
+                        When a rule is disabled, it will not be evaluated against transactions.
+                        This can be useful for temporarily suspending a rule without deleting it.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Rule Information (Read-only) -->
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Rule Information</h2>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Rule Name</span>
+                        <span class="text-gray-900">{{ rule.rule_name }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Alert Level</span>
+                        {% if rule.alert_level == 'HIGH' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                        {% elif rule.alert_level == 'MEDIUM' %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Medium</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Low</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Evaluation Trigger</span>
+                        <span class="text-gray-900">{{ rule.evaluation_trigger }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Scoring Algorithm</span>
+                        <span class="text-gray-900">{{ rule.scoring_algorithm }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Types -->
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Transaction Types</h2>
+                
+                <div class="mb-4">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        {% if rule.transaction_types %}
+                            {% for type in rule.transaction_types.split %}
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700">{{ type }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700">ALL-ALL</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        Transaction types that this rule applies to. To modify transaction types, please contact the system administrator.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Thresholds -->
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+                    Thresholds
+                    <span class="text-sm font-normal text-gray-500">(Adjust the values to change rule sensitivity)</span>
+                </h2>
+                
+                <div class="space-y-4">
+                    <template x-for="(value, key) in formData.thresholds" :key="key">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1" x-text="formatLabel(key)"></label>
+                            <div class="flex items-center">
+                                <input type="number" x-model.number="formData.thresholds[key]" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                <span class="ml-2 text-gray-500 text-sm" x-text="getUnit(key)"></span>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div x-show="Object.keys(formData.thresholds).length === 0" class="text-gray-500 text-sm">
+                        No thresholds configured for this rule.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recurrence Settings -->
+            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 md:col-span-2">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+                    Recurrence Settings
+                    <span class="text-sm font-normal text-gray-500">(How often transactions are evaluated in a time window)</span>
+                </h2>
+                
+                <div class="space-y-4">
+                    <template x-for="(value, key) in formData.recurrence" :key="key">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1" x-text="formatLabel(key)"></label>
+                            <div class="flex items-center">
+                                <input type="number" x-model.number="formData.recurrence[key]" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                <span class="ml-2 text-gray-500 text-sm" x-text="getRecurrenceUnit(key)"></span>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div x-show="Object.keys(formData.recurrence).length === 0" class="text-gray-500 text-sm">
+                        No recurrence settings configured for this rule.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden fields for form submission -->
+        <input type="hidden" name="thresholds" x-bind:value="JSON.stringify(formData.thresholds)">
+        <input type="hidden" name="recurrence_settings" x-bind:value="JSON.stringify(formData.recurrence)">
+        
+        <!-- Action Buttons -->
+        <div class="flex justify-end mt-6 space-x-3">
+            <a href="{% url 'transaction_monitoring:rule_detail' rule_id=rule.rule_code %}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Cancel
+            </a>
+            <button type="submit" class="inline-flex justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function ruleForm() {
+        return {
+            formData: {
+                enabled: {{ rule.enabled|lower }},
+                thresholds: JSON.parse('{{ rule.get_thresholds_json|escapejs }}'),
+                recurrence: JSON.parse('{{ rule.get_recurrence_settings_json|escapejs }}')
+            },
+            formatLabel: function(key) {
+                return key.split('_').map(function(word) { 
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                }).join(' ');
+            },
+            getUnit: function(key) {
+                if (key.includes('amount')) return 'USD';
+                if (key.includes('days')) return 'days';
+                if (key.includes('count')) return 'transactions';
+                if (key.includes('percentage')) return '%';
+                return '';
+            },
+            getRecurrenceUnit: function(key) {
+                if (key.includes('window')) return 'days';
+                if (key.includes('count')) return 'transactions';
+                if (key.includes('period')) return 'days';
+                return '';
+            }
+        };
+    }
+</script>
+{% endblock %} 

@@ -7,7 +7,7 @@ class AmlAppConfig(AppConfig):
 
     def ready(self):
         """Import signals when Django starts"""
-        import aml_app.signals  # Import signals to register them
+        import aml_app.signals  
 
     
 

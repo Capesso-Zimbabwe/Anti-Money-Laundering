@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Scoring Model Configuration | AML Monitoring{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="p-4 bg-white rounded-lg shadow-md">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Scoring Model Configuration</h1>
+        <div class="flex space-x-3">
+            <button type="button" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                Reset to Defaults
+            </button>
+            <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                Save Changes
+            </button>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <p class="text-gray-600">
+            Configure how transaction risk scores are calculated based on different factors.
+            The scoring model is used to determine the overall risk level of transactions flagged by monitoring rules.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Weight Distribution -->
+        <div class="col-span-1 bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Score Weights</h2>
+            <p class="text-sm text-gray-600 mb-4">Adjust the weight of each factor in the overall risk score calculation.</p>
+            
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-medium text-gray-700">Transaction Amount</label>
+                        <span class="text-sm text-gray-700">25%</span>
+                    </div>
+                    <input type="range" min="0" max="100" step="5" value="25" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-medium text-gray-700">Transaction Frequency</label>
+                        <span class="text-sm text-gray-700">20%</span>
+                    </div>
+                    <input type="range" min="0" max="100" step="5" value="20" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-medium text-gray-700">Customer Risk</label>
+                        <span class="text-sm text-gray-700">25%</span>
+                    </div>
+                    <input type="range" min="0" max="100" step="5" value="25" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-medium text-gray-700">Geographical Risk</label>
+                        <span class="text-sm text-gray-700">15%</span>
+                    </div>
+                    <input type="range" min="0" max="100" step="5" value="15" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-medium text-gray-700">Transaction Type Risk</label>
+                        <span class="text-sm text-gray-700">15%</span>
+                    </div>
+                    <input type="range" min="0" max="100" step="5" value="15" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">Total</span>
+                        <span class="text-sm text-green-600">100%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount Thresholds -->
+        <div class="col-span-1 bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Amount Thresholds</h2>
+            <p class="text-sm text-gray-600 mb-4">Define transaction amount thresholds for risk scoring.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="low_amount" class="block text-sm font-medium text-gray-700 mb-1">Low Risk Threshold</label>
+                    <div class="flex items-center">
+                        <span class="text-gray-500 mr-2">$</span>
+                        <input type="number" id="low_amount" value="5000" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Transactions below this amount are considered low risk</p>
+                </div>
+                
+                <div>
+                    <label for="medium_amount" class="block text-sm font-medium text-gray-700 mb-1">Medium Risk Threshold</label>
+                    <div class="flex items-center">
+                        <span class="text-gray-500 mr-2">$</span>
+                        <input type="number" id="medium_amount" value="10000" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Transactions below this amount are considered medium risk</p>
+                </div>
+                
+                <div>
+                    <label for="high_amount" class="block text-sm font-medium text-gray-700 mb-1">High Risk Threshold</label>
+                    <div class="flex items-center">
+                        <span class="text-gray-500 mr-2">$</span>
+                        <input type="number" id="high_amount" value="20000" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Transactions above this amount are considered high risk</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recurrence Thresholds -->
+        <div class="col-span-1 bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Recurrence Thresholds</h2>
+            <p class="text-sm text-gray-600 mb-4">Define transaction recurrence thresholds for risk scoring.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="low_recurrence" class="block text-sm font-medium text-gray-700 mb-1">Low Risk Count</label>
+                    <input type="number" id="low_recurrence" value="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Transactions with fewer occurrences are considered low risk</p>
+                </div>
+                
+                <div>
+                    <label for="medium_recurrence" class="block text-sm font-medium text-gray-700 mb-1">Medium Risk Count</label>
+                    <input type="number" id="medium_recurrence" value="5" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Transactions with fewer occurrences are considered medium risk</p>
+                </div>
+                
+                <div>
+                    <label for="high_recurrence" class="block text-sm font-medium text-gray-700 mb-1">High Risk Count</label>
+                    <input type="number" id="high_recurrence" value="10" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    <p class="text-xs text-gray-500 mt-1">Transactions with more occurrences are considered high risk</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Bands -->
+        <div class="col-span-1 md:col-span-3 bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Risk Bands</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 mb-4">Score Distribution</h3>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200 h-64 flex items-center justify-center">
+                        <div class="text-center text-gray-500">
+                            <svg class="mx-auto h-12 w-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                            </svg>
+                            <p class="mt-2">Chart will display here</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 mb-4">Risk Thresholds</h3>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <div class="flex flex-col space-y-2">
+                            <div class="flex items-center">
+                                <div class="w-full bg-gray-200 rounded-full h-4">
+                                    <div class="bg-green-500 h-4 rounded-l-full" style="width: 30%"></div>
+                                    <div class="bg-yellow-500 h-4" style="width: 40%; margin-left: 30%"></div>
+                                    <div class="bg-red-500 h-4 rounded-r-full" style="width: 30%; margin-left: 70%"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-600">
+                                <span>0</span>
+                                <span>30</span>
+                                <span>70</span>
+                                <span>100</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-green-600">Low Risk</span>
+                                <span class="text-yellow-600">Medium Risk</span>
+                                <span class="text-red-600">High Risk</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="low_band" class="block text-sm font-medium text-gray-700 mb-1">Low-Medium Threshold</label>
+                                <input type="number" id="low_band" value="30" min="0" max="100" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            
+                            <div>
+                                <label for="medium_band" class="block text-sm font-medium text-gray-700 mb-1">Medium-High Threshold</label>
+                                <input type="number" id="medium_band" value="70" min="0" max="100" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

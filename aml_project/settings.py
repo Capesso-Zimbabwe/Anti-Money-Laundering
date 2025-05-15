@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'aml_app',
+    'transaction_monitoring',
     'kyc_app',
     'tailwind',
     'theme',

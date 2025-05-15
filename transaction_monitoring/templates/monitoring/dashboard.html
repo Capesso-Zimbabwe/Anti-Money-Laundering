@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">Transaction Monitoring Dashboard</h1>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Active Rules</h6>
+                            <h2 class="mb-0">{{ active_rules }}</h2>
+                        </div>
+                        <i class="fas fa-cogs fa-3x opacity-50"></i>
+                    </div>
+                    <small>Total Rules: {{ total_rules }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">High Risk Alerts</h6>
+                            <h2 class="mb-0">{{ high_alerts }}</h2>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                    </div>
+                    <small>Last 24 hours</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Medium Risk Alerts</h6>
+                            <h2 class="mb-0">{{ medium_alerts }}</h2>
+                        </div>
+                        <i class="fas fa-exclamation-circle fa-3x opacity-50"></i>
+                    </div>
+                    <small>Last 24 hours</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Low Risk Alerts</h6>
+                            <h2 class="mb-0">{{ low_alerts }}</h2>
+                        </div>
+                        <i class="fas fa-info-circle fa-3x opacity-50"></i>
+                    </div>
+                    <small>Last 24 hours</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Alerts and Activity -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Alerts</h5>
+                    <a href="{% url 'transaction_monitoring:alerts' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Alert ID</th>
+                                    <th>Customer</th>
+                                    <th>Rule</th>
+                                    <th>Risk Level</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Placeholder data -->
+                                <tr>
+                                    <td>ALT-12345</td>
+                                    <td>Customer A</td>
+                                    <td>Unusual Activity</td>
+                                    <td><span class="badge badge-danger">High</span></td>
+                                    <td>85</td>
+                                    <td>2023-05-10 14:30</td>
+                                    <td><span class="badge badge-warning">New</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ALT-12344</td>
+                                    <td>Customer B</td>
+                                    <td>Large Transaction</td>
+                                    <td><span class="badge badge-warning">Medium</span></td>
+                                    <td>65</td>
+                                    <td>2023-05-10 13:45</td>
+                                    <td><span class="badge badge-warning">New</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ALT-12343</td>
+                                    <td>Customer C</td>
+                                    <td>Frequent Transactions</td>
+                                    <td><span class="badge badge-warning">Medium</span></td>
+                                    <td>60</td>
+                                    <td>2023-05-10 12:30</td>
+                                    <td><span class="badge badge-info">In Review</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ALT-12342</td>
+                                    <td>Customer D</td>
+                                    <td>Unusual Activity</td>
+                                    <td><span class="badge badge-info">Low</span></td>
+                                    <td>40</td>
+                                    <td>2023-05-10 11:15</td>
+                                    <td><span class="badge badge-success">Resolved</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ALT-12341</td>
+                                    <td>Customer E</td>
+                                    <td>Unusual Pattern</td>
+                                    <td><span class="badge badge-danger">High</span></td>
+                                    <td>90</td>
+                                    <td>2023-05-10 10:00</td>
+                                    <td><span class="badge badge-info">In Review</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">System Activity</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-user-edit text-primary"></i>
+                                    <span class="ml-2">Rule "Unusual Activity" updated</span>
+                                </div>
+                                <small class="text-muted">5 mins ago</small>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span class="ml-2">Alert ALT-12340 resolved</span>
+                                </div>
+                                <small class="text-muted">25 mins ago</small>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-bell text-danger"></i>
+                                    <span class="ml-2">New high risk alert generated</span>
+                                </div>
+                                <small class="text-muted">40 mins ago</small>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-sync text-info"></i>
+                                    <span class="ml-2">System scan completed</span>
+                                </div>
+                                <small class="text-muted">1 hour ago</small>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-cog text-primary"></i>
+                                    <span class="ml-2">New rule "Suspicious Transfers" added</span>
+                                </div>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="#" class="btn btn-sm btn-outline-secondary">View All Activity</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'transaction_monitoring:rules' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cogs mr-2"></i> Manage Rules
+                        </a>
+                        <a href="{% url 'transaction_monitoring:alerts' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Review Alerts
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-export mr-2"></i> Export Reports
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line mr-2"></i> System Performance
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
