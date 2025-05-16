@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction Types{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-6 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-900">Transaction Types</h1>
+        <div class="flex space-x-2">
+            <a href="{% url 'transaction_monitoring:transaction_type_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+                <i class="fas fa-plus mr-2"></i> Add Transaction Type
+            </a>
+            <a href="{% url 'transaction_monitoring:transaction_type_csv_import' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+                <i class="fas fa-file-import mr-2"></i> Import from CSV
+            </a>
+            <a href="{% url 'transaction_monitoring:transaction_type_group_list' %}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+                <i class="fas fa-layer-group mr-2"></i> Manage Groups
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Transaction Types</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 rounded-md p-4 mb-6 text-sm text-blue-700">
+                <h3 class="text-base font-medium mb-2">About Transaction Types</h3>
+                <p class="mb-2">Transaction types are specific codes that identify the nature of financial transactions in the system. They are used in AML rules to target specific transaction activities for monitoring.</p>
+                <p class="mb-2">Examples include:</p>
+                <ul class="list-disc pl-5 mb-2">
+                    <li><strong>CSH+</strong>: Cash deposit</li>
+                    <li><strong>CSH-</strong>: Cash withdrawal</li>
+                    <li><strong>CSH_CP+</strong>: Cash deposit at teller</li>
+                </ul>
+                <p>Transaction types are organized into groups (e.g., "CCE-INN" for Cash Equivalent-Incoming) to make rule configuration easier. When a rule is configured with a transaction type group, it will monitor all transactions with types in that group.</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="dataTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Code</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jurisdiction</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Groups</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for type in transaction_types %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ type.transaction_code }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ type.description }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ type.jurisdiction|default:"All" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% for group in type.groups.all %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{{ group.group_code }}</span>
+                                {% empty %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">None</span>
+                                {% endfor %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{% url 'transaction_monitoring:transaction_type_edit' code=type.transaction_code %}" class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="text-red-600 hover:text-red-900" onclick="openDeleteModal('{{ type.transaction_code|slugify }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+
+                                <!-- Delete Modal -->
+                                <div id="deleteModal{{ type.transaction_code|slugify }}" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                                    <div class="bg-white rounded-lg overflow-hidden shadow-xl max-w-md w-full">
+                                        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200">
+                                            <h3 class="text-lg font-medium text-gray-900">Confirm Delete</h3>
+                                        </div>
+                                        <div class="p-6">
+                                            <p class="mb-4">Are you sure you want to delete the transaction type <strong>{{ type.transaction_code }}</strong>?</p>
+                                            <p class="text-red-600 text-sm">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="bg-gray-100 px-4 py-3 flex justify-end">
+                                            <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded mr-2" onclick="closeDeleteModal('{{ type.transaction_code|slugify }}')">
+                                                Cancel
+                                            </button>
+                                            <form action="{% url 'transaction_monitoring:transaction_type_delete' code=type.transaction_code %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                No transaction types found. 
+                                <a href="{% url 'transaction_monitoring:transaction_type_create' %}" class="text-blue-600 hover:text-blue-800">Create one</a> 
+                                or 
+                                <a href="{% url 'transaction_monitoring:transaction_type_csv_import' %}" class="text-blue-600 hover:text-blue-800">import from CSV</a>.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "order": [[0, "asc"]]
+        });
+    });
+    
+    function openDeleteModal(id) {
+        document.getElementById('deleteModal' + id).classList.remove('hidden');
+    }
+    
+    function closeDeleteModal(id) {
+        document.getElementById('deleteModal' + id).classList.add('hidden');
+    }
+</script>
+{% endblock %} 

@@ -48,4 +48,20 @@ urlpatterns = [
     path('reports_new/', views.ReportView.as_view(), name='reports'),
     path('settings/', views.SettingsView.as_view(), name='settings'),
     path('api/v1/', include((api_urls, 'api'), namespace='api:v1')),
+
+    # Transaction Type Management URLs
+    path('transaction-types/', views.TransactionTypeListView.as_view(), name='transaction_type_list'),
+    path('transaction-types/create/', views.TransactionTypeCreateView.as_view(), name='transaction_type_create'),
+    path('transaction-types/edit/<str:code>/', views.TransactionTypeEditView.as_view(), name='transaction_type_edit'),
+    path('transaction-types/delete/<str:code>/', views.TransactionTypeDeleteView.as_view(), name='transaction_type_delete'),
+    path('transaction-types/import/', views.TransactionTypeCsvImportView.as_view(), name='transaction_type_csv_import'),
+    
+    # Transaction Type Group Management URLs
+    path('transaction-type-groups/', views.TransactionTypeGroupListView.as_view(), name='transaction_type_group_list'),
+    path('transaction-type-groups/create/', views.TransactionTypeGroupCreateView.as_view(), name='transaction_type_group_create'),
+    path('transaction-type-groups/edit/<str:code>/', views.TransactionTypeGroupEditView.as_view(), name='transaction_type_group_edit'),
+    path('transaction-type-groups/delete/<str:code>/', views.TransactionTypeGroupDeleteView.as_view(), name='transaction_type_group_delete'),
+
+    # Add a URL for processing all transactions with the dormant account algorithm
+    path('run-dormant-all-transactions/', views.run_dormant_all_transactions, name='run_dormant_all_transactions'),
 ]

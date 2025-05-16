@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Add Transaction Type Group{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-6 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-900">Add Transaction Type Group</h1>
+        <a href="{% url 'transaction_monitoring:transaction_type_group_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Groups
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Group Details</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 rounded-md p-4 mb-6 text-sm text-blue-700">
+                <h3 class="text-base font-medium mb-2">Transaction Type Group Naming</h3>
+                <p class="mb-2">Transaction type groups typically follow a structured naming convention that indicates the category and direction of transactions:</p>
+                <ul class="list-disc pl-5 mb-2">
+                    <li><strong>Format:</strong> [CATEGORY]-[DIRECTION]</li>
+                    <li><strong>Examples:</strong>
+                        <ul class="list-disc pl-5 mt-1">
+                            <li><strong>CCE-INN</strong>: Cash and Cash Equivalent Incoming transactions</li>
+                            <li><strong>WIRE-OUT</strong>: Wire Transfer Outgoing transactions</li>
+                            <li><strong>ALL-ALL</strong>: All transaction types (both incoming and outgoing)</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>Parent-child relationships can be established to create a hierarchy of transaction types, allowing for more granular rule targeting.</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="group_code" class="block text-sm font-medium text-gray-700 mb-1"><strong>Group Code</strong> <span class="text-red-600">*</span></label>
+                    <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                        id="group_code" name="group_code" required>
+                    <p class="mt-1 text-sm text-gray-500">Unique identifier for this group (e.g., CCE-INN, WIRE-OUT)</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1"><strong>Description</strong> <span class="text-red-600">*</span></label>
+                    <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                        id="description" name="description" required>
+                    <p class="mt-1 text-sm text-gray-500">Human-readable description (e.g., "Cash Equivalent Deposits", "Wire Transfer Outgoing")</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="parent_group" class="block text-sm font-medium text-gray-700 mb-1"><strong>Parent Group</strong></label>
+                    <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                        id="parent_group" name="parent_group">
+                        <option value="">-- No Parent Group --</option>
+                        {% for group in parent_groups %}
+                        <option value="{{ group.group_code }}">{{ group.group_code }} - {{ group.description }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500">Optional parent group if this is a subgroup</p>
+                </div>
+                
+                <div class="border-t border-gray-200 mt-6 pt-6 flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center text-sm">
+                        <i class="fas fa-save mr-2"></i> Save Group
+                    </button>
+                    <a href="{% url 'transaction_monitoring:transaction_type_group_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm ml-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">How Groups Are Used</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-white">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Purpose of Transaction Type Groups</h3>
+                <p class="mb-4">Transaction type groups serve several important purposes in your AML monitoring system:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <h4 class="text-base font-medium text-gray-800 mb-2"><i class="fas fa-filter text-blue-500 mr-2"></i> Rule Targeting</h4>
+                        <p class="text-sm text-gray-600 mb-4">Groups allow rules to target specific categories of transactions without having to list every individual transaction code. For example, a rule can monitor all cash deposits by targeting the CCE-INN group.</p>
+                        
+                        <h4 class="text-base font-medium text-gray-800 mb-2"><i class="fas fa-code-branch text-blue-500 mr-2"></i> Hierarchical Organization</h4>
+                        <p class="text-sm text-gray-600">Parent-child relationships between groups enable both broad and specific monitoring. A rule could target ALL-INN (all incoming) or more specifically CCE-INN (cash equivalent incoming).</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-base font-medium text-gray-800 mb-2"><i class="fas fa-cogs text-blue-500 mr-2"></i> Rule Code Structure</h4>
+                        <p class="text-sm text-gray-600 mb-4">Groups are embedded in rule codes to show what transactions they monitor. For example, AML-LCT-<strong>CCE-INN</strong>-P-D01-EST includes CCE-INN to indicate it monitors cash equivalent incoming transactions.</p>
+                        
+                        <h4 class="text-base font-medium text-gray-800 mb-2"><i class="fas fa-sync-alt text-blue-500 mr-2"></i> Maintainability</h4>
+                        <p class="text-sm text-gray-600">When transaction codes change or new ones are added, you can simply update the group membership rather than modifying individual rules.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize select2 for better select experience
+        $('#parent_group').select2({
+            placeholder: 'Select a parent group (optional)',
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %} 

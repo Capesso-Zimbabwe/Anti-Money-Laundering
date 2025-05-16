@@ -4,7 +4,7 @@ API Serializers for transaction monitoring data.
 
 from rest_framework import serializers
 from transaction_monitoring.model.transaction import Transactions
-from transaction_monitoring.model.alert import SuspiciousTransactions, SuspiciousActivityReports
+from transaction_monitoring.model.alert import Alert, SuspiciousActivityReport
 from transaction_monitoring.model.rule_settings import (
     AMLRules, 
     ScoringThreshold, 
@@ -28,7 +28,7 @@ class SuspiciousTransactionSerializer(serializers.ModelSerializer):
     transaction = TransactionSerializer(read_only=True)
     
     class Meta:
-        model = SuspiciousTransactions
+        model = Alert
         fields = '__all__'
 
 
@@ -36,7 +36,7 @@ class SuspiciousActivityReportSerializer(serializers.ModelSerializer):
     """Serializer for SuspiciousActivityReport model."""
     
     class Meta:
-        model = SuspiciousActivityReports
+        model = SuspiciousActivityReport
         fields = '__all__'
 
 

@@ -1,0 +1,45 @@
+{
+    "AML-ADR-ALL-ALL-A-M06-AIN": {
+        "rule_id": "AML-AML-ADR-ALL-ALL-A-M06-AIN",
+        "rule_name": "AML-ADR-ALL-ALL-A-M06-AIN",
+        "description": "AML-ADR-ALL-ALL-A-M06-AIN",
+        "alert_level": "LOW",
+        "scoring_algorithm": "SUM",
+        "transaction_types": [
+            "ALL-ALL",
+            "CSH+"
+        ],
+        "thresholds": {
+            "rule_type": "dormant_account",
+            "account_age_days": 90,
+            "inactive_period_months": 3,
+            "max_prior_activity": 1000.0,
+            "activity_amount": 10000.0,
+            "activity_thresholds": [
+                {
+                    "threshold_value": 1000,
+                    "score": 10,
+                    "description": "Threshold Description"
+                },
+                {
+                    "threshold_value": 5000,
+                    "score": 20,
+                    "description": "Threshold Description"
+                },
+                {
+                    "threshold_value": 10000,
+                    "score": 40,
+                    "description": "Threshold Description"
+                }
+            ],
+            "recurrence_thresholds": [
+                {
+                    "threshold_value": 3,
+                    "score": 40,
+                    "description": "Recurrence Description",
+                    "lookback_days": 30
+                }
+            ]
+        }
+    }
+}

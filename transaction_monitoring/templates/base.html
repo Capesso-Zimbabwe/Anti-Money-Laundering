@@ -113,9 +113,19 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'settings' in request.path %}active{% endif %}" href="{% url 'transaction_monitoring:settings' %}">
-                            <i class="fas fa-sliders-h"></i> Settings
+                        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSettings"
+                            aria-expanded="true" aria-controls="collapseSettings">
+                            <i class="fas fa-fw fa-cog"></i>
+                            <span>Settings</span>
                         </a>
+                        <div id="collapseSettings" class="collapse" aria-labelledby="headingSettings" data-parent="#accordionSidebar">
+                            <div class="bg-white py-2 collapse-inner rounded">
+                                <h6 class="collapse-header">Configuration:</h6>
+                                <a class="collapse-item" href="{% url 'transaction_monitoring:settings' %}">General Settings</a>
+                                <a class="collapse-item" href="{% url 'transaction_monitoring:transaction_type_list' %}">Transaction Types</a>
+                                <a class="collapse-item" href="{% url 'transaction_monitoring:transaction_type_group_list' %}">Transaction Groups</a>
+                            </div>
+                        </div>
                     </li>
                 </ul>
             </div>

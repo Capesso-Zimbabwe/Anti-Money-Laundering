@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction Type Groups{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-6 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-900">Transaction Type Groups</h1>
+        <div class="flex space-x-2">
+            <a href="{% url 'transaction_monitoring:transaction_type_group_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+                <i class="fas fa-plus mr-2"></i> Add Group
+            </a>
+            <a href="{% url 'transaction_monitoring:transaction_type_list' %}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+                <i class="fas fa-exchange-alt mr-2"></i> Manage Transaction Types
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Transaction Type Groups</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 rounded-md p-4 mb-6 text-sm text-blue-700">
+                <h3 class="text-base font-medium mb-2">About Transaction Type Groups</h3>
+                <p class="mb-2">Transaction type groups organize individual transaction codes into logical categories that can be used in rule configurations. This allows rules to target entire categories of transactions without listing each individual code.</p>
+                <p class="mb-2">Common group formats include:</p>
+                <ul class="list-disc pl-5 mb-2">
+                    <li><strong>CCE-INN</strong>: Cash and Cash Equivalent Incoming transactions</li>
+                    <li><strong>CCE-OUT</strong>: Cash and Cash Equivalent Outgoing transactions</li>
+                    <li><strong>WIRE-INN</strong>: Wire Transfer Incoming transactions</li>
+                    <li><strong>ALL-ALL</strong>: All transaction types (both incoming and outgoing)</li>
+                </ul>
+                <p>Groups can have hierarchical relationships. For example, CCE-INN might be a subgroup of ALL-INN (all incoming transactions).</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="dataTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group Code</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Group</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Types</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for group in groups %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ group.group_code }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ group.description }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if group.parent_group %}
+                                {{ group.parent_group.group_code }}
+                                {% else %}
+                                <span class="text-gray-400">None</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% with count=group.transaction_types.count %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{{ count }} transaction type{{ count|pluralize }}</span>
+                                {% endwith %}
+                                
+                                {% if group.transaction_types.exists %}
+                                <button class="ml-2 text-blue-600 hover:text-blue-800 text-sm" type="button" onclick="toggleCollapse('collapseGroup{{ group.group_code|slugify }}')">
+                                    Show/Hide
+                                </button>
+                                <div class="hidden mt-2" id="collapseGroup{{ group.group_code|slugify }}">
+                                    <div class="bg-gray-50 rounded-md p-3 border border-gray-200">
+                                        <ul class="space-y-1">
+                                            {% for type in group.transaction_types.all|slice:":10" %}
+                                            <li>{{ type.transaction_code }} - {{ type.description }}</li>
+                                            {% endfor %}
+                                            
+                                            {% if group.transaction_types.count > 10 %}
+                                            <li class="text-gray-500">...and {{ group.transaction_types.count|add:"-10" }} more</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{% url 'transaction_monitoring:transaction_type_group_edit' code=group.group_code %}" class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="text-red-600 hover:text-red-900" onclick="openDeleteModal('{{ group.group_code|slugify }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+
+                                <!-- Delete Modal -->
+                                <div id="deleteModal{{ group.group_code|slugify }}" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+                                    <div class="bg-white rounded-lg overflow-hidden shadow-xl max-w-md w-full">
+                                        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                                            <h3 class="text-lg font-medium text-gray-900">Confirm Delete</h3>
+                                            <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeDeleteModal('{{ group.group_code|slugify }}')">
+                                                <span class="sr-only">Close</span>
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-6">
+                                            <p class="mb-4">Are you sure you want to delete the transaction type group <strong>{{ group.group_code }}</strong>?</p>
+                                            <p class="text-red-600 text-sm mb-4">This action cannot be undone.</p>
+                                            
+                                            {% if group.transaction_types.exists %}
+                                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                                                <div class="flex">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <p class="text-sm text-yellow-700">
+                                                            Warning: This group has {{ group.transaction_types.count }} transaction types associated with it. You cannot delete it until you remove these associations.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if group.children.exists %}
+                                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                                <div class="flex">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <p class="text-sm text-yellow-700">
+                                                            Warning: This group has child groups that depend on it. You cannot delete it until you remove these relationships.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="bg-gray-100 px-4 py-3 flex justify-end">
+                                            <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded mr-2" onclick="closeDeleteModal('{{ group.group_code|slugify }}')">
+                                                Cancel
+                                            </button>
+                                            <form action="{% url 'transaction_monitoring:transaction_type_group_delete' code=group.group_code %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded" {% if group.transaction_types.exists or group.children.exists %}disabled{% endif %}>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                No transaction type groups found. 
+                                <a href="{% url 'transaction_monitoring:transaction_type_group_create' %}" class="text-blue-600 hover:text-blue-800">Create one</a>.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Using Transaction Type Groups in Rules</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Group Structure in Rule Codes</h3>
+                    <p class="mb-3">AML rule codes incorporate transaction type groups to indicate what kinds of transactions they monitor:</p>
+                    <pre class="bg-gray-100 p-2 rounded mb-3 font-mono text-sm">AML-LCT-CCE-INN-A-D01-LCT</pre>
+                    <p class="mb-2">In this example:</p>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li><strong>CCE-INN</strong> indicates the rule monitors Cash and Cash Equivalent Incoming transactions</li>
+                    </ul>
+                    <p>This structure makes it easy to understand the scope of each rule at a glance.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Benefits of the Grouping System</h3>
+                    <ul class="list-disc pl-5 mb-3">
+                        <li><strong>Simplified Rule Configuration</strong>: Target entire categories with one selection</li>
+                        <li><strong>Consistency</strong>: Standardized groupings across the system</li>
+                        <li><strong>Maintainability</strong>: Update groups to affect all related rules</li>
+                        <li><strong>Flexibility</strong>: Hierarchical structure allows for both broad and specific targeting</li>
+                    </ul>
+                    <p>When configuring rules, you'll select transaction type groups in the "Transaction Types" section of the rule configuration form.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "order": [[0, "asc"]]
+        });
+    });
+    
+    function toggleCollapse(id) {
+        const element = document.getElementById(id);
+        if (element.classList.contains('hidden')) {
+            element.classList.remove('hidden');
+        } else {
+            element.classList.add('hidden');
+        }
+    }
+    
+    function openDeleteModal(id) {
+        document.getElementById('deleteModal' + id).classList.remove('hidden');
+    }
+    
+    function closeDeleteModal(id) {
+        document.getElementById('deleteModal' + id).classList.add('hidden');
+    }
+</script>
+{% endblock %} 

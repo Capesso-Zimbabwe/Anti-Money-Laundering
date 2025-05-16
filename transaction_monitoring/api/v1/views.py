@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from transaction_monitoring.model.transaction import Transactions
-from transaction_monitoring.model.alert import SuspiciousTransactions, SuspiciousActivityReports
+from transaction_monitoring.model.alert import Alert, SuspiciousActivityReport
 from transaction_monitoring.model.rule_settings import (
     AMLRules, 
     ScoringThreshold, 
@@ -56,7 +56,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             'status': 'success',
             'message': f'Transaction {transaction.transaction_id} analyzed',
             'alerts_count': len(alerts),
-            'alert_ids': [alert.report_id for alert in alerts]
+            'alert_ids': [alert.alert_id for alert in alerts]
         })
     
     @action(detail=False, methods=['post'])
@@ -69,7 +69,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
 class AlertViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint for suspicious transaction alerts."""
-    queryset = SuspiciousTransactions.objects.all().order_by('-created_at')
+    queryset = Alert.objects.all().order_by('-created_at')
     serializer_class = SuspiciousTransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -84,18 +84,18 @@ class AlertViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response({
             'status': 'success',
-            'message': f'Alert {alert.report_id} marked as reviewed'
+            'message': f'Alert {alert.alert_id} marked as reviewed'
         })
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         """Get alert statistics."""
-        total = SuspiciousTransactions.objects.count()
-        pending = SuspiciousTransactions.objects.filter(review_status='Pending').count()
-        reviewed = SuspiciousTransactions.objects.filter(review_status='Reviewed').count()
-        high_risk = SuspiciousTransactions.objects.filter(risk_level='HIGH').count()
-        medium_risk = SuspiciousTransactions.objects.filter(risk_level='MEDIUM').count()
-        low_risk = SuspiciousTransactions.objects.filter(risk_level='LOW').count()
+        total = Alert.objects.count()
+        pending = Alert.objects.filter(status='NEW').count()
+        reviewed = Alert.objects.filter(status__in=['ASSIGNED', 'INVESTIGATING']).count()
+        high_risk = Alert.objects.filter(alert_level='HIGH').count()
+        medium_risk = Alert.objects.filter(alert_level='MEDIUM').count()
+        low_risk = Alert.objects.filter(alert_level='LOW').count()
         
         return Response({
             'total': total,
@@ -109,7 +109,7 @@ class AlertViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SARViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint for SAR reports."""
-    queryset = SuspiciousActivityReports.objects.all().order_by('-created_at')
+    queryset = SuspiciousActivityReport.objects.all().order_by('-created_at')
     serializer_class = SuspiciousActivityReportSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -125,7 +125,7 @@ class SARViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response({
             'status': 'success',
-            'message': f'Report {report.report_id} approved'
+            'message': f'Report {report.sar_id} approved'
         })
 
 

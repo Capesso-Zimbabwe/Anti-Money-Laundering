@@ -343,101 +343,186 @@
                     <!-- Transaction Types Tab -->
                     <div class="tab-pane hidden" id="transaction-types-tab">
                         <div class="mb-6">
-                            <div class="bg-blue-50 rounded-md p-4 mb-4 text-sm text-blue-700">
-                                Select which transaction types this rule should be applied to.
-                            </div>
-                            
-                            <div class="mb-4 flex space-x-2">
-                                <button type="button" 
-                                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm" 
-                                        id="selectAllTypes">
-                                    Select All
-                                </button>
-                                <button type="button" 
-                                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm" 
-                                        id="clearAllTypes">
-                                    Clear All
-                                </button>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 gap-6">
-                                {% for group in transaction_type_groups %}
-                                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                                    <div class="bg-gray-100 px-6 py-3 border-b border-gray-200">
-                                        <h3 class="text-base font-medium text-gray-900">{{ group.description }}</h3>
-                                    </div>
-                                    <div class="p-6">
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4">
-                                            {% for tx_type in group.transaction_types.all %}
-                                            <div class="flex items-center">
-                                                <input class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transaction-type-check" 
-                                                    type="checkbox" 
-                                                    name="transaction_types[]" 
-                                                    id="type_{{ tx_type.transaction_code }}" 
-                                                    value="{{ tx_type.transaction_code }}"
-                                                    {% if tx_type.transaction_code in rule.transaction_types.split %}checked{% endif %}>
-                                                <label class="ml-2 text-sm text-gray-700" for="type_{{ tx_type.transaction_code }}">
-                                                    {{ tx_type.description }}
-                                                </label>
-                                            </div>
-                                            {% empty %}
-                                            <div class="col-span-3 text-gray-500 italic">
-                                                No transaction types available for this group
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                                    <p class="text-gray-500">No transaction type groups available</p>
-                                    <p class="text-sm text-gray-400 mt-2">Transaction types need to be created in the database first</p>
-                                    
-                                    <!-- Display available transaction types as individual checkboxes -->
-                                    {% if transaction_types %}
-                                    <div class="mt-6">
-                                        <h4 class="text-lg font-medium text-gray-900 mb-4">Available Transaction Types</h4>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                            {% for tx_type in transaction_types %}
-                                            <div class="flex items-center">
-                                                <input class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transaction-type-check" 
-                                                    type="checkbox" 
-                                                    name="transaction_types[]" 
-                                                    id="type_{{ tx_type.code }}" 
-                                                    value="{{ tx_type.code }}"
-                                                    {% if tx_type.code in rule.transaction_types.split %}checked{% endif %}>
-                                                <label class="ml-2 text-sm text-gray-700" for="type_{{ tx_type.code }}">
-                                                    {{ tx_type.description }}
-                                                </label>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
+                            <div class="bg-blue-50 rounded-md p-4 mb-6 text-sm text-blue-700 flex items-start">
+                                <i class="fas fa-info-circle mt-0.5 mr-3 text-blue-500"></i>
+                                <div>
+                                    <p class="mb-2">Select the transaction types this rule should monitor. You can select individual transaction types or entire groups.</p>
+                                    <p>The rule code <strong>{{ rule.rule_code }}</strong> suggests monitoring: 
+                                    {% if "CCE-INN" in rule.rule_code %}
+                                        <span class="font-semibold">Cash and Cash Equivalent Incoming transactions</span>
+                                    {% elif "CCE-OUT" in rule.rule_code %}
+                                        <span class="font-semibold">Cash and Cash Equivalent Outgoing transactions</span>
+                                    {% elif "WIRE-INN" in rule.rule_code %}
+                                        <span class="font-semibold">Wire Transfer Incoming transactions</span>
+                                    {% elif "WIRE-OUT" in rule.rule_code %}
+                                        <span class="font-semibold">Wire Transfer Outgoing transactions</span>
+                                    {% elif "ALL-ALL" in rule.rule_code %}
+                                        <span class="font-semibold">All transaction types</span>
                                     {% endif %}
+                                    </p>
+                                    <p class="mt-2">
+                                        <a href="{% url 'transaction_monitoring:transaction_type_list' %}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                                            Manage Transaction Types
+                                        </a> | 
+                                        <a href="{% url 'transaction_monitoring:transaction_type_group_list' %}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                                            Manage Transaction Type Groups
+                                        </a>
+                                    </p>
                                 </div>
-                                {% endfor %}
-                                
-                                <!-- Fallback: Display transaction types from transaction_types attribute if no groups -->
-                                {% if transaction_type_groups|length == 0 %}
-                                <div class="bg-white rounded-lg shadow-md p-6">
-                                    <h3 class="text-lg font-medium text-gray-900 mb-4">Standard Transaction Types</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                        {% for type_code in transaction_type_codes %}
-                                        <div class="flex items-center">
-                                            <input class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transaction-type-check" 
-                                                type="checkbox" 
-                                                name="transaction_types[]" 
-                                                id="type_{{ type_code }}" 
-                                                value="{{ type_code }}"
-                                                {% if type_code in rule.transaction_types.split %}checked{% endif %}>
-                                            <label class="ml-2 text-sm text-gray-700" for="type_{{ type_code }}">
-                                                {{ type_code }}
-                                            </label>
-                                        </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-4">
+                                <h3 class="text-lg font-medium text-gray-900">Transaction Type Groups</h3>
+                                <div>
+                                    <button type="button" id="selectAllGroups" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm mr-2 hover:bg-blue-700">
+                                        Select All
+                                    </button>
+                                    <button type="button" id="clearAllGroups" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-400">
+                                        Clear All
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg mb-4">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Select
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Group Code
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Description
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Transaction Types
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        {% for group in transaction_type_groups %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" class="transaction-group-check h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    value="{{ group.group_code }}"
+                                                    {% if group.group_code in rule.transaction_types %}checked{% endif %}
+                                                    data-group-code="{{ group.group_code }}">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    {{ group.group_code }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {{ group.description }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm text-gray-500">
+                                                    {{ group.transaction_types.count }} transaction type(s)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                                No transaction type groups defined. 
+                                                <a href="{% url 'transaction_monitoring:transaction_type_group_create' %}" class="text-blue-600 hover:text-blue-800" target="_blank">Create one</a>.
+                                            </td>
+                                        </tr>
                                         {% endfor %}
-                                    </div>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-4">
+                                <h3 class="text-lg font-medium text-gray-900">Individual Transaction Types</h3>
+                                <div>
+                                    <button type="button" id="selectAllTypes" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm mr-2 hover:bg-blue-700">
+                                        Select All
+                                    </button>
+                                    <button type="button" id="clearAllTypes" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-400">
+                                        Clear All
+                                    </button>
                                 </div>
-                                {% endif %}
+                            </div>
+                            
+                            <input type="text" id="typeSearchInput" class="w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 mb-4" 
+                                placeholder="Search transaction types...">
+                            
+                            <div class="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg" style="max-height: 400px; overflow-y: auto;">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                                Select
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                                Code
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                                Description
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                                Groups
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        {% for type in transaction_types %}
+                                        <tr class="transaction-type-row">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" class="transaction-type-check h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    name="transaction_types[]" value="{{ type.transaction_code }}"
+                                                    {% if type.transaction_code in rule.transaction_types %}checked{% endif %}>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm font-medium text-gray-900">{{ type.transaction_code }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm text-gray-500">{{ type.description }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% for group in type.groups.all %}
+                                                <span class="px-2 py-1 mr-1 mb-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 type-group-label" data-group="{{ group.group_code }}">
+                                                    {{ group.group_code }}
+                                                </span>
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                                No transaction types defined. 
+                                                <a href="{% url 'transaction_monitoring:transaction_type_create' %}" class="text-blue-600 hover:text-blue-800" target="_blank">Create one</a>.
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 rounded-md p-4 text-sm text-yellow-700 flex items-start mb-6">
+                            <i class="fas fa-lightbulb mt-0.5 mr-3 text-yellow-500"></i>
+                            <div>
+                                <p><strong>Transaction Type Selection Tips:</strong></p>
+                                <ul class="list-disc ml-5 mt-2">
+                                    <li>Selecting a transaction type group automatically includes all transaction types in that group</li>
+                                    <li>For most rules, selecting relevant groups is more efficient than selecting individual transaction types</li>
+                                    <li>Common patterns:
+                                        <ul class="list-disc ml-5 mt-1">
+                                            <li>Cash monitoring rules: Use CCE-INN or CCE-OUT</li>
+                                            <li>Wire monitoring rules: Use WIRE-INN or WIRE-OUT</li>
+                                            <li>Account activity rules: Use ALL-ALL</li>
+                                        </ul>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -659,7 +744,7 @@
             });
         }
         
-        // Initialize remove handlers
+        // Setup initial event handlers
         setupThresholdRemoveHandlers();
         setupRecurrenceRemoveHandlers();
         
@@ -672,34 +757,114 @@
                     threshold_value: parseFloat(row.querySelector('.threshold-value').value),
                     score: parseInt(row.querySelector('.threshold-score').value),
                     description: row.querySelector('.threshold-description').value,
-                    factor_type: 'ACTIVITY_VALUE'
                 });
             });
+            
+            // Add the thresholds JSON to a hidden field
+            const activityThresholdsField = document.createElement('input');
+            activityThresholdsField.type = 'hidden';
+            activityThresholdsField.name = 'activity_thresholds_json';
+            activityThresholdsField.value = JSON.stringify(activityThresholds);
+            this.appendChild(activityThresholdsField);
             
             // Collect recurrence thresholds
             const recurrenceThresholds = [];
             recurrenceThresholdsTable.querySelectorAll('.recurrence-row').forEach(function(row) {
                 recurrenceThresholds.push({
-                    threshold_value: parseInt(row.querySelector('.recurrence-value').value),
+                    threshold_value: parseFloat(row.querySelector('.recurrence-value').value),
                     score: parseInt(row.querySelector('.recurrence-score').value),
                     description: row.querySelector('.recurrence-description').value,
-                    lookback_days: parseInt(row.querySelector('.recurrence-lookback').value),
-                    factor_type: 'RECURRENCE'
+                    lookback_days: parseInt(row.querySelector('.recurrence-lookback').value)
                 });
             });
             
-            // Set hidden field values
-            document.getElementById('activity_thresholds_json').value = JSON.stringify(activityThresholds);
-            document.getElementById('recurrence_thresholds_json').value = JSON.stringify(recurrenceThresholds);
-            
-            // Validation - make sure at least one transaction type is selected
-            const selectedTypes = document.querySelectorAll('.transaction-type-check:checked');
-            if (selectedTypes.length === 0) {
-                if (!confirm('No transaction types are selected. This rule will not apply to any transactions. Continue anyway?')) {
-                    event.preventDefault();
-                    return;
+            // Add the recurrence thresholds JSON to a hidden field
+            const recurrenceThresholdsField = document.createElement('input');
+            recurrenceThresholdsField.type = 'hidden';
+            recurrenceThresholdsField.name = 'recurrence_thresholds_json';
+            recurrenceThresholdsField.value = JSON.stringify(recurrenceThresholds);
+            this.appendChild(recurrenceThresholdsField);
+        });
+
+        // Transaction Type Management
+        
+        // Select/deselect all transaction type groups
+        document.getElementById('selectAllGroups')?.addEventListener('click', function() {
+            document.querySelectorAll('.transaction-group-check').forEach(function(checkbox) {
+                checkbox.checked = true;
+                // Trigger the change event to update related transaction types
+                const event = new Event('change');
+                checkbox.dispatchEvent(event);
+            });
+        });
+
+        document.getElementById('clearAllGroups')?.addEventListener('click', function() {
+            document.querySelectorAll('.transaction-group-check').forEach(function(checkbox) {
+                checkbox.checked = false;
+                // Trigger the change event to update related transaction types
+                const event = new Event('change');
+                checkbox.dispatchEvent(event);
+            });
+        });
+
+        // Select/deselect all individual transaction types
+        document.getElementById('selectAllTypes')?.addEventListener('click', function() {
+            document.querySelectorAll('.transaction-type-check').forEach(function(checkbox) {
+                const row = checkbox.closest('tr');
+                if (row.style.display !== 'none') { // Only select visible rows (if search is active)
+                    checkbox.checked = true;
                 }
-            }
+            });
+        });
+
+        document.getElementById('clearAllTypes')?.addEventListener('click', function() {
+            document.querySelectorAll('.transaction-type-check').forEach(function(checkbox) {
+                const row = checkbox.closest('tr');
+                if (row.style.display !== 'none') { // Only clear visible rows (if search is active)
+                    checkbox.checked = false;
+                }
+            });
+        });
+
+        // Transaction type search functionality
+        document.getElementById('typeSearchInput')?.addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            document.querySelectorAll('.transaction-type-row').forEach(function(row) {
+                const code = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const description = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const groups = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                
+                if (code.includes(searchText) || description.includes(searchText) || groups.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Auto-select transaction types when group is selected
+        document.querySelectorAll('.transaction-group-check').forEach(function(groupCheckbox) {
+            groupCheckbox.addEventListener('change', function() {
+                const groupCode = this.dataset.groupCode;
+                
+                document.querySelectorAll('.transaction-type-row').forEach(function(row) {
+                    const groupLabels = row.querySelectorAll('.type-group-label');
+                    const typeCheckbox = row.querySelector('.transaction-type-check');
+                    
+                    // Check if this transaction type belongs to the selected group
+                    let belongsToGroup = false;
+                    groupLabels.forEach(function(label) {
+                        if (label.dataset.group === groupCode) {
+                            belongsToGroup = true;
+                        }
+                    });
+                    
+                    // If it belongs to the group, match the group checkbox state
+                    if (belongsToGroup) {
+                        typeCheckbox.checked = groupCheckbox.checked;
+                    }
+                });
+            });
         });
     });
 </script>

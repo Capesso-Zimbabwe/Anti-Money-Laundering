@@ -6,10 +6,11 @@ import jsonfield
 class AMLRules(models.Model):
     """
     Model for AML monitoring rule settings.
+    This is the base model for all rule types.
     """
     id = models.AutoField(primary_key=True)
     rule_code = models.CharField(max_length=100, unique=True)
-    account_type = models.CharField(max_length=50, default='INDIVIDUAL')
+    account_type = models.CharField(max_length=50, null=True, blank=True)
     rule_name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     
@@ -38,73 +39,18 @@ class AMLRules(models.Model):
     )
     min_alert_score = models.IntegerField(default=50)
     
-    # Thresholds and settings (stored as JSON)
-    thresholds = models.TextField(null=True, blank=True)
-    recurrence_settings = models.TextField(null=True, blank=True)
+    # Rule type indicator
+    rule_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('DORMANT_ACCOUNT', 'Dormant Account Activity'),
+            ('LARGE_CASH', 'Large Cash Transactions'),
+        ],
+        null=True,
+        blank=True
+    )
     
-    # Large cash deposits
-    large_cash_deposits = models.BooleanField(default=True)
-    large_cash_deposits_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=10000.00)
-    
-    # Large withdrawals
-    large_withdrawals = models.BooleanField(default=True)
-    large_withdrawals_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=10000.00)
-    
-    # Large transfers
-    large_transfers = models.BooleanField(default=True)
-    large_transfers_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=10000.00)
-    
-    # Large payments
-    large_payments = models.BooleanField(default=True)
-    large_payments_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=10000.00)
-    
-    # Dormant account
-    dormant_account_activity = models.BooleanField(default=True)
-    dormant_days_threshold = models.IntegerField(default=180)
-    dormant_activity_amount = models.DecimalField(max_digits=20, decimal_places=2, default=5000.00)
-    
-    # Structured deposits
-    structured_deposits = models.BooleanField(default=True)
-    structured_deposits_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=9000.00)
-    structured_deposits_window = models.IntegerField(default=30)
-    structured_deposits_count = models.IntegerField(default=3)
-    
-    # Currency exchange
-    frequent_currency_exchange = models.BooleanField(default=True)
-    currency_exchange_count_threshold = models.IntegerField(default=3)
-    currency_exchange_time_window = models.IntegerField(default=30)
-    
-    # Fund movement
-    rapid_fund_movement = models.BooleanField(default=True)
-    rapid_movement_window = models.IntegerField(default=48)
-    rapid_movement_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=80.00)
-    
-    # Inconsistent transactions
-    inconsistent_transactions = models.BooleanField(default=True)
-    inconsistent_amount_multiplier = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
-    
-    # High risk jurisdictions
-    high_risk_jurisdictions = models.BooleanField(default=True)
-    high_risk_countries = models.TextField(default='AF,IR,KP,RU,MM')
-    
-    # Small transfers
-    small_frequent_transfers = models.BooleanField(default=True)
-    small_transfer_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=3000.00)
-    small_transfer_frequency = models.IntegerField(default=3)
-    small_transfer_window = models.IntegerField(default=7)
-    
-    # Non-profit organizations
-    nonprofit_suspicious = models.BooleanField(default=True)
-    nonprofit_transaction_threshold = models.DecimalField(max_digits=20, decimal_places=2, default=5000.00)
-    
-    # Shell companies
-    shell_companies = models.BooleanField(default=True)
-    shell_company_age_threshold = models.IntegerField(default=90)
-    
-    # Customer risks
-    high_risk_jurisdictions_customers = models.BooleanField(default=True)
-    
-    # Custom parameters
+    # For backwards compatibility
     custom_parameters = jsonfield.JSONField(default=dict, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -115,30 +61,79 @@ class AMLRules(models.Model):
         indexes = [
             models.Index(fields=['account_type']),
             models.Index(fields=['enabled']),
+            models.Index(fields=['rule_type']),
         ]
     
     def __str__(self):
-        return f"{self.rule_code} - {self.rule_name} - {self.account_type}"
+        return f"{self.rule_code} - {self.rule_name}"
+
+class DormantAccountRule(models.Model):
+    """
+    Configuration for dormant account monitoring rules.
+    Detects when previously inactive accounts suddenly show activity.
+    """
+    rule = models.OneToOneField(AMLRules, on_delete=models.CASCADE, related_name='dormant_account_config')
+    account_age_days = models.IntegerField(
+        default=90, 
+        help_text="Minimum age of account in days to be considered for dormancy checks"
+    )
+    inactive_period_months = models.IntegerField(
+        default=3, 
+        help_text="Number of months with minimal activity to consider account dormant"
+    )
+    activity_amount_threshold = models.DecimalField(
+        max_digits=20, 
+        decimal_places=2, 
+        default=5000.00,
+        help_text="Minimum amount to trigger alert when activity occurs in dormant account"
+    )
+    max_prior_activity = models.DecimalField(
+        max_digits=20, 
+        decimal_places=2, 
+        default=1000.00,
+        help_text="Maximum allowed activity amount during dormancy period"
+    )
     
-    def get_thresholds(self):
-        """Get thresholds as dictionary"""
-        if self.thresholds:
-            return json.loads(self.thresholds)
-        return {}
+    class Meta:
+        db_table = 'dormant_account_rules'
     
-    def set_thresholds(self, thresholds_dict):
-        """Set thresholds from dictionary"""
-        self.thresholds = json.dumps(thresholds_dict)
+    def __str__(self):
+        return f"Dormant Account Config - {self.rule.rule_code}"
+
+class LargeCashRule(models.Model):
+    """
+    Configuration for large cash transaction monitoring rules.
+    Detects large cash deposits, withdrawals, and aggregated cash activity.
+    """
+    rule = models.OneToOneField(AMLRules, on_delete=models.CASCADE, related_name='large_cash_config')
+    threshold_amount = models.DecimalField(
+        max_digits=20, 
+        decimal_places=2, 
+        default=10000.00,
+        help_text="Threshold amount to trigger the rule"
+    )
+    aggregate_period_days = models.IntegerField(
+        default=30,
+        help_text="Period in days over which to aggregate transactions"
+    )
+    include_foreign_currency = models.BooleanField(
+        default=True,
+        help_text="Whether to include foreign currency transactions in the detection"
+    )
+    monitor_deposits = models.BooleanField(
+        default=True,
+        help_text="Monitor cash deposits"
+    )
+    monitor_withdrawals = models.BooleanField(
+        default=True,
+        help_text="Monitor cash withdrawals"
+    )
     
-    def get_recurrence_settings(self):
-        """Get recurrence settings as dictionary"""
-        if self.recurrence_settings:
-            return json.loads(self.recurrence_settings)
-        return {}
+    class Meta:
+        db_table = 'large_cash_rules'
     
-    def set_recurrence_settings(self, recurrence_dict):
-        """Set recurrence settings from dictionary"""
-        self.recurrence_settings = json.dumps(recurrence_dict)
+    def __str__(self):
+        return f"Large Cash Config - {self.rule.rule_code}"
 
 class ScoringThreshold(models.Model):
     """
@@ -155,6 +150,7 @@ class ScoringThreshold(models.Model):
     threshold_value = models.DecimalField(max_digits=20, decimal_places=2)
     score = models.IntegerField()
     description = models.CharField(max_length=255, null=True, blank=True)
+    lookback_days = models.IntegerField(null=True, blank=True)
     
     class Meta:
         db_table = 'scoring_thresholds'
@@ -163,6 +159,90 @@ class ScoringThreshold(models.Model):
     
     def __str__(self):
         return f"{self.rule.rule_code} - {self.factor_type} - {self.threshold_value}"
+
+class RuleType(models.Model):
+    """
+    Model for storing available rule types and their configurations.
+    """
+    type_id = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'rule_types'
+        ordering = ['type_id']
+    
+    def __str__(self):
+        return f"{self.type_id} - {self.name}"
+
+class RuleTypeConfig(models.Model):
+    """
+    Configuration for a specific rule's rule type.
+    This replaces storing rule type configurations in the custom_parameters JSON field.
+    """
+    rule = models.ForeignKey(AMLRules, on_delete=models.CASCADE, related_name='rule_type_configs')
+    rule_type = models.ForeignKey(RuleType, on_delete=models.CASCADE, related_name='rule_configs')
+    
+    # Common configurable parameters across rule types
+    # Specific parameter fields for each rule type
+    amount_threshold = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    count_threshold = models.IntegerField(null=True, blank=True)
+    time_window_days = models.IntegerField(null=True, blank=True)
+    percentage_threshold = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    lookback_period_days = models.IntegerField(null=True, blank=True)
+    
+    # JSON field for any additional parameters not covered by standard fields
+    additional_parameters = jsonfield.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        db_table = 'rule_type_configs'
+        unique_together = ('rule', 'rule_type')
+    
+    def __str__(self):
+        return f"{self.rule.rule_code} - {self.rule_type.type_id}"
+
+class StructuredTransactionConfig(models.Model):
+    """
+    Configuration for structured transaction monitoring rules.
+    """
+    rule = models.OneToOneField(AMLRules, on_delete=models.CASCADE, related_name='structured_transaction_config')
+    total_amount_threshold = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    transaction_count_threshold = models.IntegerField(null=True, blank=True)
+    time_window_days = models.IntegerField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'structured_transaction_configs'
+    
+    def __str__(self):
+        return f"Structured Transaction Config - {self.rule.rule_code}"
+
+class HighRiskCountryConfig(models.Model):
+    """
+    Configuration for high-risk country monitoring.
+    """
+    rule = models.OneToOneField(AMLRules, on_delete=models.CASCADE, related_name='high_risk_country_config')
+    country_codes = models.TextField(null=True, blank=True)  # Comma-separated country codes
+    amount_threshold = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    
+    class Meta:
+        db_table = 'high_risk_country_configs'
+    
+    def __str__(self):
+        return f"High Risk Country Config - {self.rule.rule_code}"
+
+class RecurrenceConfig(models.Model):
+    """
+    Configuration for recurrence pattern monitoring.
+    """
+    rule = models.OneToOneField(AMLRules, on_delete=models.CASCADE, related_name='recurrence_config')
+    occurrences_threshold = models.IntegerField(null=True, blank=True)
+    lookback_period_days = models.IntegerField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'recurrence_configs'
+    
+    def __str__(self):
+        return f"Recurrence Config - {self.rule.rule_code}"
 
 class TransactionTypeGroup(models.Model):
     """

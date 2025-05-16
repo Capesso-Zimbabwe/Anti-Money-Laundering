@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Import Transaction Types{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-6 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-900">Import Transaction Types</h1>
+        <a href="{% url 'transaction_monitoring:transaction_type_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Transaction Types
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">CSV Import</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 rounded-md p-4 mb-6 text-sm text-blue-700">
+                <h3 class="text-base font-medium mb-2">CSV File Format</h3>
+                <p class="mb-2">Your CSV file should have the following columns:</p>
+                <ul class="list-disc pl-5 mb-3">
+                    <li><strong>transaction_code</strong> <span class="text-red-600">*</span> - Unique identifier (e.g., CSH+)</li>
+                    <li><strong>description</strong> <span class="text-red-600">*</span> - Human-readable description</li>
+                    <li><strong>jurisdiction</strong> (optional) - Country code (e.g., USA)</li>
+                    <li><strong>groups</strong> (optional) - Comma-separated list of group codes (e.g., CCE-INN,ALL-ALL)</li>
+                </ul>
+                <p class="mb-2">Example:</p>
+                <pre class="bg-gray-100 p-2 rounded mb-3 font-mono text-sm">transaction_code,description,jurisdiction,groups
+CSH+,Cash Deposit,,CCE-INN,ALL-ALL
+CSH-,Cash Withdrawal,,CCE-OUT,ALL-ALL
+WIRE_INT+,International Wire Transfer In,USA,WIRE-INN,ALL-ALL</pre>
+                <p class="text-blue-600"><i class="fas fa-info-circle mr-1"></i> If a group code doesn't exist, it will be automatically created.</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="csv_file" class="block text-sm font-medium text-gray-700 mb-1"><strong>CSV File</strong> <span class="text-red-600">*</span></label>
+                    <div class="mt-1 flex items-center">
+                        <label class="w-full flex items-center px-3 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:text-gray-600 focus:outline-none cursor-pointer">
+                            <span class="flex-grow truncate" id="file-label">Choose file</span>
+                            <input type="file" class="sr-only" id="csv_file" name="csv_file" required accept=".csv" onchange="updateFileLabel()">
+                            <span class="ml-2 bg-gray-100 px-2 py-1 rounded-md text-gray-500 text-xs">Browse</span>
+                        </label>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">Select a CSV file with transaction type data</p>
+                </div>
+                
+                <div class="border-t border-gray-200 mt-6 pt-6 flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center text-sm">
+                        <i class="fas fa-upload mr-2"></i> Import Transaction Types
+                    </button>
+                    <a href="{% url 'transaction_monitoring:transaction_type_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm ml-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Understanding Transaction Types</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-gray-50 rounded-md p-4">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Transaction Type System</h3>
+                <p class="mb-4 text-gray-700">The transaction type system is a core component of AML monitoring. It categorizes financial transactions to allow rules to target specific activities.</p>
+                
+                <h4 class="text-base font-medium text-gray-900 mb-2 mt-4">Important Concepts</h4>
+                <ul class="list-disc pl-5 mb-4 text-gray-700 space-y-1">
+                    <li><strong>Transaction Codes</strong>: Unique identifiers for specific transaction types (e.g., CSH+, WIRE_INT+)</li>
+                    <li><strong>Transaction Groups</strong>: Collections of related transaction types (e.g., CCE-INN for all cash equivalent deposits)</li>
+                    <li><strong>Group Hierarchy</strong>: Groups can have parent-child relationships (e.g., ALL-ALL contains all transaction types)</li>
+                </ul>
+                
+                <h4 class="text-base font-medium text-gray-900 mb-2 mt-4">How It's Used in Rules</h4>
+                <p class="mb-2 text-gray-700">When configuring AML rules, you can specify which transaction types the rule should monitor:</p>
+                <ul class="list-disc pl-5 text-gray-700 space-y-1">
+                    <li>Rules can target specific transaction codes for precise monitoring</li>
+                    <li>Rules can target transaction groups to monitor categories of activity</li>
+                    <li>The rule code itself often indicates the transaction groups it monitors (e.g., AML-LCT-<strong>CCE-INN</strong>-P-D01-EST)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateFileLabel() {
+        const input = document.getElementById('csv_file');
+        const label = document.getElementById('file-label');
+        if (input.files.length > 0) {
+            label.textContent = input.files[0].name;
+        } else {
+            label.textContent = 'Choose file';
+        }
+    }
+</script>
+{% endblock %} 

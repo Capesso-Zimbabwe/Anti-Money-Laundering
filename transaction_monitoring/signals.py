@@ -8,7 +8,7 @@ from django.dispatch import receiver
 import logging
 
 from .model.transaction import Transactions
-from .model.alert import SuspiciousTransactions, SuspiciousActivityReports
+from .model.alert import Alert, SuspiciousActivityReport
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -33,15 +33,15 @@ def process_new_transaction(sender, instance, created, **kwargs):
         except Exception as e:
             logger.error(f"Error processing transaction {instance.transaction_id}: {str(e)}")
 
-@receiver(post_save, sender=SuspiciousTransactions)
+@receiver(post_save, sender=Alert)
 def handle_new_alert(sender, instance, created, **kwargs):
     """
-    Signal handler for when a new suspicious transaction alert is created.
+    Signal handler for when a new alert is created.
     
     This could trigger notifications, workflow processes, etc.
     """
     if created:
-        logger.info(f"New suspicious transaction alert created: {instance.report_id}")
+        logger.info(f"New alert created: {instance.alert_id}")
         
         # Here you could add code to:
         # - Send notifications to compliance team

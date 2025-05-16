@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Transaction Type{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Edit Transaction Type: {{ transaction_type.transaction_code }}</h1>
+        <a href="{% url 'transaction_monitoring:transaction_type_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Transaction Types
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Transaction Type Details</h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="transaction_code"><strong>Transaction Code</strong></label>
+                    <input type="text" class="form-control" id="transaction_code" value="{{ transaction_type.transaction_code }}" disabled>
+                    <small class="form-text text-muted">Transaction code cannot be changed after creation</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description"><strong>Description</strong> <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="description" name="description" value="{{ transaction_type.description }}" required>
+                    <small class="form-text text-muted">Human-readable description</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="jurisdiction"><strong>Jurisdiction</strong></label>
+                    <input type="text" class="form-control" id="jurisdiction" name="jurisdiction" value="{{ transaction_type.jurisdiction }}" placeholder="e.g., USA, CAN">
+                    <small class="form-text text-muted">Country code if transaction type is specific to a jurisdiction (leave blank for all)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="groups"><strong>Transaction Type Groups</strong></label>
+                    <select multiple class="form-control" id="groups" name="groups">
+                        {% for group in groups %}
+                        <option value="{{ group.group_code }}" {% if group in selected_groups %}selected{% endif %}>
+                            {{ group.group_code }} - {{ group.description }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">Select one or more groups this transaction type belongs to</small>
+                </div>
+                
+                <hr>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Transaction Type
+                    </button>
+                    <a href="{% url 'transaction_monitoring:transaction_type_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Usage Information</h6>
+        </div>
+        <div class="card-body">
+            <div class="info-box">
+                <h5>Understanding Transaction Types</h5>
+                <p>Transaction types like <strong>{{ transaction_type.transaction_code }}</strong> are used in AML rules to target specific kinds of financial activity.</p>
+                <p>When a rule is configured with a transaction type or group that includes <strong>{{ transaction_type.transaction_code }}</strong>, the monitoring system will evaluate transactions with this code against the rule's criteria.</p>
+                <p>The transaction type grouping system allows rules to monitor entire categories of transactions (e.g., all cash deposits, all international wires) without needing to specify each individual transaction code.</p>
+                
+                <h5 class="mt-4">Related Transaction Type Groups</h5>
+                <ul>
+                    {% for group in selected_groups %}
+                    <li>
+                        <strong>{{ group.group_code }}</strong> - {{ group.description }}
+                        {% if group.parent_group %}
+                        <br><small>Parent group: {{ group.parent_group.group_code }}</small>
+                        {% endif %}
+                    </li>
+                    {% empty %}
+                    <li>This transaction type is not currently associated with any groups.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize select2 for better multi-select experience
+        $('#groups').select2({
+            placeholder: 'Select transaction type groups',
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %} 

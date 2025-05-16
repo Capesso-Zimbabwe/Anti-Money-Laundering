@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Transaction Type Group{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-6 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-900">Edit Transaction Type Group: {{ group.group_code }}</h1>
+        <a href="{% url 'transaction_monitoring:transaction_type_group_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded inline-flex items-center text-sm">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Groups
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Group Details</h2>
+        </div>
+        <div class="p-6">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="group_code" class="block text-sm font-medium text-gray-700 mb-1"><strong>Group Code</strong></label>
+                    <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                        id="group_code" value="{{ group.group_code }}" disabled>
+                    <p class="mt-1 text-sm text-gray-500">Group code cannot be changed after creation</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1"><strong>Description</strong> <span class="text-red-600">*</span></label>
+                    <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                        id="description" name="description" value="{{ group.description }}" required>
+                    <p class="mt-1 text-sm text-gray-500">Human-readable description</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="parent_group" class="block text-sm font-medium text-gray-700 mb-1"><strong>Parent Group</strong></label>
+                    <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" 
+                        id="parent_group" name="parent_group">
+                        <option value="">-- No Parent Group --</option>
+                        {% for parent in parent_groups %}
+                        <option value="{{ parent.group_code }}" {% if group.parent_group == parent %}selected{% endif %}>
+                            {{ parent.group_code }} - {{ parent.description }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500">Optional parent group if this is a subgroup</p>
+                </div>
+                
+                <div class="border-t border-gray-200 mt-6 pt-6 flex justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center text-sm">
+                        <i class="fas fa-save mr-2"></i> Update Group
+                    </button>
+                    <a href="{% url 'transaction_monitoring:transaction_type_group_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm ml-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-white">Associated Transaction Types</h2>
+            <a href="{% url 'transaction_monitoring:transaction_type_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                <i class="fas fa-plus mr-1"></i> Add Transaction Type
+            </a>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 rounded-md p-4 mb-6 text-sm text-blue-700">
+                <p>The following transaction types are associated with this group. To add or remove transaction types from this group, edit the individual transaction type.</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="typesTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Code</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jurisdiction</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for type in group.transaction_types.all %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ type.transaction_code }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ type.description }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ type.jurisdiction|default:"All" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{% url 'transaction_monitoring:transaction_type_edit' code=type.transaction_code %}" class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">No transaction types are associated with this group.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+            <h2 class="text-lg font-bold text-white">Group Hierarchy</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-blue-500">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-bold text-blue-600 uppercase mb-1">Parent Group</div>
+                                {% if group.parent_group %}
+                                <div class="text-lg font-bold text-gray-800">{{ group.parent_group.group_code }}</div>
+                                <div class="text-sm text-gray-600">{{ group.parent_group.description }}</div>
+                                <a href="{% url 'transaction_monitoring:transaction_type_group_edit' code=group.parent_group.group_code %}" 
+                                   class="mt-2 inline-flex items-center px-3 py-1 border border-blue-600 text-blue-600 rounded-md text-sm hover:bg-blue-50">
+                                    View Parent Group
+                                </a>
+                                {% else %}
+                                <div class="text-lg font-bold text-gray-800">None</div>
+                                <div class="text-sm text-gray-600">This is a top-level group</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-bold text-green-600 uppercase mb-1">Child Groups</div>
+                                {% with children=group.children.all %}
+                                <div class="text-lg font-bold text-gray-800">{{ children|length }} child group{{ children|length|pluralize }}</div>
+                                {% if children %}
+                                <ul class="mt-2 space-y-1">
+                                    {% for child in children %}
+                                    <li>
+                                        <a href="{% url 'transaction_monitoring:transaction_type_group_edit' code=child.group_code %}" class="text-blue-600 hover:text-blue-800">
+                                            {{ child.group_code }}
+                                        </a> - {{ child.description }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <div class="text-sm text-gray-600">This group has no child groups</div>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                            <div>
+                                <i class="fas fa-arrow-down fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize select2 for better select experience
+        $('#parent_group').select2({
+            placeholder: 'Select a parent group (optional)',
+            allowClear: true
+        });
+        
+        // Initialize DataTables
+        $('#typesTable').DataTable({
+            "order": [[0, "asc"]],
+            "pageLength": 10
+        });
+    });
+</script>
+{% endblock %} 
